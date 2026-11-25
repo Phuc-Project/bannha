@@ -1,8 +1,16 @@
+import { RouterProvider } from 'react-router-dom';
+import { TextSizeProvider } from './providers/TextSizeProvider';
+import { ToastProvider } from './providers/ToastProvider';
+import { appRouter } from './router';
+import { UpdatePrompt } from './UpdatePrompt';
+
 export function App() {
   return (
-    <main>
-      <h1>BẢN NHÀ</h1>
-      <p>Việc cần làm hôm nay</p>
-    </main>
+    <TextSizeProvider role="student">
+      <ToastProvider>
+        <RouterProvider router={appRouter} />
+        <UpdatePrompt />
+      </ToastProvider>
+    </TextSizeProvider>
   );
 }
