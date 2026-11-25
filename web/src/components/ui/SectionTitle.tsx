@@ -6,18 +6,13 @@ export interface SectionTitleProps {
   subtitle?: string;
   action?: ReactNode;
   className?: string;
-  id?: string;
 }
 
-/** Section heading: 20px (scales to 22px in large text), clay-600, never uppercase */
-export function SectionTitle({ title, subtitle, action, className, id }: SectionTitleProps) {
+export function SectionTitle({ title, subtitle, action, className }: SectionTitleProps) {
   return (
-    <div className={cx('flex flex-wrap items-baseline justify-between gap-2', className)}>
+    <div className={cx('flex items-baseline justify-between gap-3', className)}>
       <div>
-        <h2
-          id={id}
-          className="text-[length:var(--font-size-section)] font-bold tracking-[-0.01em] text-clay-600"
-        >
+        <h2 className="text-[length:var(--font-size-section)] font-bold tracking-[-0.01em] text-clay-600">
           {title}
         </h2>
         {subtitle ? (
