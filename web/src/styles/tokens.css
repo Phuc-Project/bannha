@@ -1,0 +1,29 @@
+:root {
+  --color-forest-900: #163F33;
+  --color-forest-700: #1E5A47;
+  --color-forest-50: #E8F0EC;
+  --color-cream: #FAF6EE;
+  --color-surface: #FFFFFF;
+  --color-line: #E7E0D2;
+  --color-clay-600: #B8431E;
+  --color-turmeric: #E3B23C;
+  --color-turmeric-50: #FDF6E3;
+  --color-ink: #1C2B25;
+  --color-muted: #5B6B63;
+  --color-danger: #C62828;
+  --color-success: #2E7D4F;
+
+  --font-size-body: 1rem;
+  --font-size-sub: 0.875rem;
+  --font-size-section: 1.25rem;
+  --font-size-title: 1.5rem;
+  --control-height: 2.75rem;
+}
+
+html[data-text-size='large'] {
+  --font-size-body: 1.125rem;
+  --font-size-sub: 1rem;
+  --font-size-section: 1.375rem;
+  --font-size-title: 1.625rem;
+  --control-height: 3.25rem;
+}

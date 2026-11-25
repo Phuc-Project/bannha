@@ -6,6 +6,10 @@
   "workspaces": [
     "web"
   ],
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
   "scripts": {
     "dev": "npm --workspace web run dev",
     "build": "npm --workspace web run build",
