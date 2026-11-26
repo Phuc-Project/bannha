@@ -15,11 +15,11 @@ Mỗi giai đoạn từ **GĐ 0 → GĐ 8** tuân thủ nghiêm ngặt 6 bước
    - Viết kế hoạch chi tiết vào `docs/plans/giai-doan-<n>.md`.
    - **DỪNG LẠI chờ người dùng duyệt kế hoạch** trước khi viết code triển khai.
 2. **TDD cho logic cốt lõi (`/tdd` · `test-driven-development`)**:
-   - Bắt buộc viết test đỏ trước → code tối thiểu cho xanh → refactor cho: đồng bộ offline (`src/sync/`), chấm điểm ghép cặp đồ cũ, ký/kiểm tra HMAC thẻ QR, chính sách RLS Supabase, tính suất ăn & cắt suất tự động, kiểm độ tương phản WCAG AA, nút giữ SOS 2 giây.
+   - Bắt buộc viết test đỏ trước → code tối thiểu cho xanh → refactor cho: đồng bộ offline (`src/sync/`), chấm điểm ghép cặp đồ cũ, ký/kiểm tra chữ ký Ed25519 thẻ QR, chính sách RLS Supabase, tính suất ăn & cắt suất tự động, kiểm độ tương phản WCAG AA, nút giữ SOS 2 giây.
 3. **Kiểm duyệt CSDL & RLS (`database-reviewer` · checklist Supabase RLS)**:
-   - Mọi migration trong `supabase/migrations/` phải bật RLS trên 100% bảng, dùng hàm `SECURITY DEFINER` trong schema `private` (`current_school_id()`, `has_role(text)`, `is_guardian_of(uuid)`, `is_homeroom_of(uuid)`), cô lập theo `school_id`, bảo vệ dữ liệu nhạy cảm (`health_*`, `item_requests`) và có test âm tính (bị chặn đúng quyền).
+   - Mọi migration trong `backend/supabase/migrations/` phải bật RLS trên 100% bảng, dùng hàm `SECURITY DEFINER` trong schema `private` (`current_school_id()`, `has_role(text)`, `is_guardian_of(uuid)`, `is_homeroom_of(uuid)`), cô lập theo `school_id`, bảo vệ dữ liệu nhạy cảm (`health_*`, `item_requests`) và có test âm tính (bị chặn đúng quyền).
 4. **Kiểm duyệt Bảo mật (`security-reviewer` · `backend-security-coder` / `frontend-security-coder`)**:
-   - Kiểm tra mọi Edge Function (xác thực JWT + kiểm role + validate `zod`), upload Storage (private bucket + signed URL + giới hạn ≤ 5MB server / nén ≤ 300KB client), bảo vệ dữ liệu trẻ vị thành niên, không lộ `SUPABASE_SERVICE_ROLE_KEY` hay `ANTHROPIC_API_KEY` ở client, cấm `dangerouslySetInnerHTML`.
+   - Kiểm tra mọi endpoint FastAPI (xác thực JWT + kiểm role + validate Pydantic), upload Storage (private bucket + signed URL + giới hạn ≤ 5MB server / nén ≤ 300KB client), bảo vệ dữ liệu trẻ vị thành niên, không lộ `SUPABASE_SERVICE_ROLE_KEY` hay `GEMINI_API_KEY` ở client, cấm `dangerouslySetInnerHTML`.
 5. **Kiểm tra chất lượng cuối giai đoạn (`/code-review` → `/e2e` → `verify`)**:
    - Chạy rà soát mã nguồn (`code-reviewer` / `find-bugs`), chạy Playwright E2E ở 2 khung nhìn **360×800** và **1280×800**, chụp screenshot lưu minh chứng.
    - Chạy `npm run verify` (`lint` + `typecheck` + `test` + `build` + `check:budget`) — **tất cả phải xanh 100%**.
@@ -36,7 +36,7 @@ Mỗi giai đoạn từ **GĐ 0 → GĐ 8** tuân thủ nghiêm ngặt 6 bước
 ### Thư viện được phép (Whitelist)
 - **Core SPA:** `vite`, `react@^18`, `react-dom@^18`, `typescript` (`strict: true`, cấm `any`), `react-router-dom` (lazy-load mọi route chức năng).
 - **Styling & Font:** `tailwindcss` (token qua CSS variables), `@fontsource/be-vietnam-pro` (chỉ nạp weights `400`, `500`, `600`, `700`, tự host), `lucide-react` (`strokeWidth={1.75}`).
-- **Offline & Backend:** `@supabase/supabase-js`, `dexie`, `dexie-react-hooks`, `vite-plugin-pwa` (Workbox).
+- **Offline & Backend (client):** `@supabase/supabase-js` (chỉ Auth/Realtime/Storage upload), `dexie`, `dexie-react-hooks`, `vite-plugin-pwa` (Workbox).
 - **Tiện ích nghiệp vụ:** `zod`, `date-fns` (kèm locale `vi`), `qrcode` + `@zxing/browser` (chỉ lazy-load ở màn tạo/quét QR), `browser-image-compression` (nén ≤ 300KB, cạnh dài ≤ 1280px trước khi lưu Dexie/upload).
 - **Kiểm thử & Đo lường:** `vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `@playwright/test`, `rollup-plugin-visualizer`.
 - **Accessibility Primitives:** Ưu tiên HTML bản địa (`<dialog>`, `<button>`, `<select>`); được phép dùng Radix primitives rời (`@radix-ui/react-*`) không kèm theme nếu thật sự cần, nhưng phải xin phép nếu phát sinh ngoài gói đã duyệt.
@@ -56,7 +56,7 @@ Mỗi giai đoạn từ **GĐ 0 → GĐ 8** tuân thủ nghiêm ngặt 6 bước
 VITE_SUPABASE_URL=
 VITE_SUPABASE_PUBLISHABLE_KEY=
 VITE_ACCOUNT_EMAIL_DOMAIN=bannha.internal
-# Chỉ đặt trong Supabase Edge Function secrets — TUYỆT ĐỐI KHÔNG đưa vào client:
+# Chỉ đặt trong biến môi trường của backend (Render) — TUYỆT ĐỐI KHÔNG đưa vào client:
 SUPABASE_SERVICE_ROLE_KEY=
 ANTHROPIC_API_KEY=
 AI_MODEL=claude-haiku-5-5
@@ -135,22 +135,32 @@ AI_DAILY_LIMIT_PER_STUDENT=30
 
 ```text
 ban-nha/
-├── web/                  # Frontend (Vite + React 18 + TypeScript PWA)
-│   ├── public/           # favicon.svg, pwa-192x192.png, pwa-512x512.png
-│   └── src/
-│       ├── app/          # router, providers (TextSize, Toast, Auth), AppShell
-│       ├── components/   # ui/ (Button, HoldButton, Card, TribalStripe...) & layout/
-│       ├── dev/ui/       # Trang styleguide /dev/ui (React.lazy) + 4 màn mẫu vai trò
-│       ├── features/     # dorm, kitchen, contact-book, tutor, health, donations, scholarships, culture, admin, auth
-│       ├── sync/         # dexie db, pull, push, outbox, network status
-│       ├── lib/          # supabase client, contrast, roles, date, image, qr, format
-│       ├── content/      # career-quiz.json
-│       └── styles/       # tokens.css, base.css, fonts.ts, palette.ts
-├── supabase/             # Backend (migrations/, functions/, seed.sql, tests/ RLS)
-├── e2e/                  # Kiểm thử Playwright E2E (360px & 1280px)
-├── scripts/              # gen-icons.mjs, check-budget.mjs, seed.mjs, gen-types.mjs
-└── docs/                 # plans/ (giai-doan-0..8.md), assumptions.md, screenshots/
+├── frontend/             # Vite + React 18 + TypeScript PWA (npm workspace)
+│   ├── public/
+│   └── src/ app/ components/ dev/ui/ features/ sync/ lib/ content/ styles/
+├── backend/              # FastAPI (Python) — tách riêng, quản lý bằng uv
+│   ├── app/ core/ common/ modules/<chức năng>/ ai/ jobs/
+│   ├── supabase/         # config.toml, migrations/ (schema + RLS + storage), seed.sql
+│   ├── scripts/          # seed.py, gen_qr_key.py
+│   └── tests/ unit/ api/ rls/
+├── e2e/                  # Playwright E2E (360px & 1280px)
+├── scripts/              # gen-icons.mjs, check-budget.mjs (frontend)
+└── docs/                 # plans/, assumptions.md, screenshots/
 ```
+
+## 5b. Backend (quyết định 2026-11-26, thay phần Edge Functions/Anthropic của PROMPT.md)
+
+Kế hoạch đầy đủ: `docs/plans/backend-fastapi.md`.
+
+- **FastAPI** (Python 3.12+, Pydantic v2, SQLAlchemy Core async + asyncpg, uv, ruff, mypy --strict, pytest ≥ 80%). Deploy **Render** (Singapore).
+- **Supabase** chỉ lo Auth (client đăng nhập bằng supabase-js), Postgres, Storage (signed URL do backend cấp), Realtime (SOS, báo ốm). **Mọi đọc/ghi nghiệp vụ đi qua FastAPI.**
+- Mỗi request chạy truy vấn **dưới quyền người dùng** (`set local role authenticated` + `request.jwt.claims`) → RLS vẫn là lớp bảo vệ thứ hai. Phiên service role chỉ cho admin, job định kỳ, thông báo hệ thống — ghi rõ trong code.
+- Vai trò và `school_id` đọc từ `profiles`, **không** tin claim trong JWT. Header `X-Active-Role` chọn vai trò đang dùng.
+- Đồng bộ offline: `GET /api/v1/sync/pull` (con trỏ `(updated_at,id)` lùi 2 phút) và `POST /api/v1/sync/push` nhận **lệnh nghiệp vụ** (`leave_request.create`…), idempotent qua bảng `sync_ops`. Kết quả mỗi lệnh: `applied | rejected | retry`.
+- AI gia sư: **Gemini** qua SDK `google-genai`, mô hình từ `GEMINI_MODEL`. Dùng **gói miễn phí** theo quyết định của chủ dự án → **tuyệt đối không gửi tên, lớp, dân tộc, ảnh có mặt người** lên Gemini; không log nội dung hội thoại.
+- Thẻ QR ký **Ed25519** (máy quản sinh chỉ giữ khóa công khai để kiểm offline). Khóa bí mật chỉ ở biến môi trường backend.
+- Điểm trung bình môn: miệng/15 phút ×1, 45 phút/giữa kỳ ×2, cuối kỳ ×3 (đã xác nhận).
+- Phản hồi API: `{ success, data, error: { code, message (tiếng Việt) }, meta }`.
 
 ---
 

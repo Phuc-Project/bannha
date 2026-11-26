@@ -33,3 +33,12 @@ Tài liệu này ghi nhận các quyết định làm rõ chi tiết kỹ thuậ
 
 7. **Tổ chức kho mã nguồn 5 thư mục cấp cao (`web/`, `supabase/`, `e2e/`, `scripts/`, `docs/`):**
    - Theo chỉ định kiến trúc của người dùng, dự án dùng npm workspaces với `web/` chứa toàn bộ mã nguồn Vite + React PWA, `supabase/` chứa migrations/RLS/Edge Functions/tests, `e2e/` chứa cấu hình và kịch bản Playwright, `scripts/` chứa các công cụ dòng lệnh dùng chung (`gen-icons.mjs`, `check-budget.mjs`, và ở GĐ 1 thêm `seed.mjs`, `gen-types.mjs`), và `docs/` lưu kế hoạch, quyết định kỹ thuật cùng ảnh chụp kiểm chứng. File `.env` đặt tại thư mục gốc dự án được Vite đọc qua `envDir: '..'` để dùng chung nhất quán giữa `web/` và `scripts/`.
+
+## Quyết định backend (2026-11-26)
+
+- **Backend riêng bằng FastAPI** trong `backend/`, ngang hàng `frontend/`; thay Supabase Edge Functions trong PROMPT.md. Supabase giữ Auth, Postgres (RLS), Storage, Realtime. Mọi đọc/ghi nghiệp vụ đi qua FastAPI.
+- **Gemini gói miễn phí** thay Anthropic theo quyết định của chủ dự án. Google có thể dùng dữ liệu gói miễn phí để cải thiện mô hình, nên backend không gửi tên, lớp, dân tộc hay ảnh có mặt người; màn gia sư báo rõ điều này cho học sinh. Đổi sang gói trả phí chỉ cần thay `GEMINI_API_KEY`.
+- **Thẻ QR ký Ed25519** thay HMAC: máy quản sinh chỉ giữ khóa công khai để kiểm offline, mất máy không làm giả được thẻ.
+- **Điểm trung bình môn:** miệng/15 phút hệ số 1, 45 phút/giữa kỳ hệ số 2, cuối kỳ hệ số 3 (chủ dự án xác nhận).
+- **Deploy backend:** Render, vùng Singapore. Gói free ngủ sau 15 phút không dùng → lần gọi đầu chậm; app offline-first nên vẫn dùng được.
+
