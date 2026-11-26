@@ -28,7 +28,8 @@ async def test_students_and_parents_file_leave_only_for_themselves_or_their_chil
 async def test_leave_review_is_for_dorm_staff_and_homeroom_teacher(
     conn: AsyncConnection, act_as: ActAs
 ) -> None:
-    approve = "update app.leave_requests set status = 'approved' where id = :id"
+    approve = """update app.leave_requests
+                 set status = 'approved', reviewed_by = auth.uid(), reviewed_at = now() where id = :id"""
     pending = sid("leave:1")  # Giàng A Páo, class 10A1
     for who in ("gv02", "bep01", "hs24002"):
         await act_as(who)
