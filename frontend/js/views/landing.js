@@ -3,7 +3,7 @@
  */
 (function initLanding(global) {
   const { esc } = global.BanNha.utils;
-  const { icon } = global.BanNha.icons;
+  const { icon, brandLogo } = global.BanNha.icons;
   const { CONFIG } = global.BanNha;
 
   const ROLES = [
@@ -114,7 +114,7 @@
 
   function renderPreview() {
     const items = [
-      ['Điểm danh phòng A201 lúc 20:30', 'Quét mã QR, dùng được cả khi không có sóng'],
+      ['Điểm danh phòng A201 lúc 20:30', 'Quét mã QR thẻ nội trú'],
       ['Bữa tối: Gà đồi kho sả ớt, canh bí đỏ', 'Hạn báo cắt suất ăn trước 15:30'],
       ['Tự học Toán 10: Hàm số bậc hai', 'Gia sư gợi ý từng bước và 5 câu tự luyện'],
       ['Lịch khám răng định kỳ', '14:00 Thứ Bảy tại Phòng Y tế trường'],
@@ -150,7 +150,7 @@
           </ol>
         </div>
         <div class="preview-foot">
-          <span>Phụ huynh ở bản nắm tình hình của con ngay khi đồng bộ.</span>
+          <span>Phụ huynh ở bản nắm tình hình của con mỗi ngày.</span>
         </div>
       </div>`;
   }
@@ -161,7 +161,7 @@
         <header class="landing-nav">
           <div class="l-container landing-nav-inner">
             <button type="button" class="landing-brand" data-action="scroll-to" data-target="top">
-              <span class="brand-mark">${icon('home', 18)}</span>
+              <span class="brand-mark">${brandLogo(38)}</span>
               <span>
                 <strong>BẢN NHÀ</strong>
                 <small>Đồng hành học sinh dân tộc nội trú</small>
@@ -200,7 +200,7 @@
                 </div>
                 <ul class="hero-facts">
                   <li>${icon('offline', 17)} Dữ liệu lưu trên máy chủ của trường</li>
-                  <li>${icon('key', 17)} Tài khoản do nhà trường cấp</li>
+                  <li>${icon('key', 17)} Tự đăng ký trong 1 phút</li>
                   <li>${icon('device', 17)} Chữ lớn dễ đọc cho phụ huynh</li>
                 </ul>
               </div>
