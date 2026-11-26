@@ -5,7 +5,7 @@
  * - `pull()`        : POST /api/v1/sync/pull -> kéo dữ liệu mới theo con trỏ từng bảng, đổi sang
  *                     cấu trúc state cục bộ mà các màn hình đang dùng.
  * - `toServerOp()`  : dịch lệnh Outbox cục bộ sang đúng tên lệnh + payload mà backend chấp nhận.
- * Chế độ Demo / Dùng thử không đi qua tệp này.
+ * Ứng dụng chỉ chạy trực tuyến: mọi dữ liệu đi qua tệp này.
  */
 (function initServerSync(global) {
   const { CONFIG } = global.BanNha;
@@ -74,6 +74,10 @@
       phone: me.phone || null,
       mustChangePassword: Boolean(me.must_change_password),
       childrenIds: (me.children || []).map((c) => c.id),
+      // Mã QR thẻ phòng hiển thị trên máy (chưa ký số bởi máy chủ)
+      qrToken: me.roles.includes('student')
+        ? global.BanNha.utils.makeQrToken(CONFIG.schoolId, String(me.username).toUpperCase(), 1)
+        : '',
     };
   }
 

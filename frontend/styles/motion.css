@@ -1,76 +1,22 @@
 /* ==========================================================================
-   BẢN NHÀ — Hệ chuyển động
-   Luận đề chuyển động (Impeccable · animate): chuyển động chỉ để
-   (1) phản hồi thao tác, (2) giữ mạch không gian khi đổi màn, (3) dẫn mắt tới việc cần làm.
-   - Chỉ dùng transform & opacity (chạy trên GPU, không gây reflow).
-   - Phản hồi 90–140ms · đổi trạng thái 240ms · dàn cảnh 460ms · lối ra nhanh hơn lối vào.
-   - Hiệu ứng vào trang chỉ chạy khi ĐỔI MÀN (#app[data-entering]), không lặp lại mỗi lần bấm nút.
-   - Tôn trọng tuyệt đối prefers-reduced-motion.
+   BẢN NHÀ — Chuyển động tinh giản (Chỉ phản hồi thao tác & SOS giữ 2 giây)
    ========================================================================== */
 
-@keyframes riseIn {
+@keyframes fadeInSoft {
   from {
     opacity: 0;
-    transform: translate3d(0, 14px, 0);
+    transform: translate3d(0, 6px, 0);
   }
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@keyframes pillIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes bubbleIn {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.55;
-  }
-  50% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
-}
-
-@keyframes qrScanSweep {
-  0% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate3d(0, 152px, 0);
-    opacity: 0.2;
   }
 }
 
 @keyframes toastEnter {
   from {
     opacity: 0;
-    transform: translate3d(0, 16px, 0) scale(0.96);
+    transform: translate3d(0, 12px, 0);
   }
   to {
     opacity: 1;
@@ -81,7 +27,7 @@
 @keyframes toastLeave {
   to {
     opacity: 0;
-    transform: translate3d(0, 8px, 0) scale(0.98);
+    transform: translate3d(0, 6px, 0);
   }
 }
 
@@ -94,94 +40,9 @@
   }
 }
 
-@keyframes fadeOutView {
-  to {
-    opacity: 0;
-    transform: translate3d(0, -6px, 0);
-  }
-}
-
-@keyframes fadeInView {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-}
-
-/* ---------- Dàn cảnh khi đổi màn: các khối xuất hiện so le ---------- */
-#app[data-entering] .reveal-up {
-  animation: riseIn var(--dur-slow) var(--ease-out-expo) both;
-  animation-delay: calc(var(--stagger, 0) * 45ms);
-}
-
-#app[data-entering] .page-head {
-  animation: riseIn var(--dur-slow) var(--ease-out-expo) both;
-}
-
-#app[data-entering] .page-head::after {
-  animation: pillIn var(--dur-slow) var(--ease-out-expo) 120ms both;
-  transform-origin: left center;
-}
-
-#app[data-entering] .sidebar-btn[aria-current='page']::before,
-#app[data-entering] .bottom-nav-btn[aria-current='page']::before {
-  animation: pillIn var(--dur-base) var(--ease-out-expo) both;
-}
-
-.tab-btn[aria-selected='true']::before {
-  animation: pillIn var(--dur-base) var(--ease-out-expo) both;
-}
-
-/* ---------- Hiện dần khi cuộn tới (trang giới thiệu) ---------- */
-.js-ready .reveal {
-  opacity: 0;
-  transform: translate3d(0, 22px, 0);
-  transition:
-    opacity 620ms var(--ease-out-expo),
-    transform 620ms var(--ease-out-expo);
-  transition-delay: calc(var(--stagger, 0) * 70ms);
-}
-
-.js-ready .reveal.is-in {
-  opacity: 1;
-  transform: none;
-}
-
-/* ---------- Đổi màn bằng View Transitions API ---------- */
-::view-transition-old(root) {
-  animation: var(--dur-exit) var(--ease-in) both fadeOutView;
-}
-
-::view-transition-new(root) {
-  animation: var(--dur-base) var(--ease-out-expo) both fadeInView;
-}
-
-/* ---------- Trạng thái đồng bộ: chấm "thở" khi đang chờ gửi ---------- */
-.sync-badge[data-state='pending'] .sync-dot::after,
-.sync-badge[data-state='offline'] .sync-dot::after,
-.trial-dot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: inherit;
-  animation: breathe 1.8s var(--ease-in-out) infinite;
-}
-
-.trial-dot {
-  position: relative;
-}
-
-/* ---------- Máy quét QR ---------- */
-.qr-scan-line {
-  position: absolute;
-  left: 0.5rem;
-  right: 0.5rem;
-  top: 0.5rem;
-  height: 2px;
-  background: var(--color-clay-600);
-  pointer-events: none;
-  animation: qrScanSweep 2.4s var(--ease-in-out) infinite alternate;
+#app[data-entering] .main-area,
+#app[data-entering] .auth-center {
+  animation: fadeInSoft var(--dur-base) var(--ease-out) both;
 }
 
 /* ---------- Nút giữ SOS 2 giây ---------- */
@@ -189,32 +50,33 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 3.75rem;
-  background: linear-gradient(180deg, #d23a3a, var(--color-danger));
+  min-height: 3.6rem;
+  background: var(--color-danger);
   color: #fff;
-  border: 1px solid #8e1b1b;
-  border-radius: var(--radius-card);
+  border: 1px solid var(--color-danger-hover);
+  border-radius: 10px;
   font-family: inherit;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.2),
-    0 8px 24px -10px rgb(198 40 40 / 0.6);
-  transition: transform var(--dur-fast) var(--ease-out-quart);
+  transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+
+.sos-hold-btn:hover {
+  background: var(--color-danger-hover);
 }
 
 .sos-hold-btn[data-holding='true'] {
-  transform: scale(0.985);
+  transform: scale(0.99);
 }
 
 .sos-hold-btn .hold-fill {
   position: absolute;
   inset: 0;
-  background: rgb(60 0 0 / 0.32);
+  background: rgb(0 0 0 / 0.25);
   transform: scaleX(0);
   transform-origin: left center;
   pointer-events: none;
@@ -225,14 +87,15 @@
   z-index: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0 1rem;
 }
 
-/* ---------- Toast ---------- */
+/* ---------- Toast thông báo ---------- */
 .toast-region {
   position: fixed;
-  bottom: 5.2rem;
+  bottom: 5rem;
   right: 1rem;
   left: 1rem;
   z-index: 60;
@@ -242,42 +105,29 @@
   pointer-events: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   .toast-region {
     left: auto;
-    bottom: 1.4rem;
-    max-width: 25rem;
+    bottom: 1.25rem;
+    max-width: 24rem;
   }
 }
 
 .toast-item {
   position: relative;
   overflow: hidden;
-  background: var(--color-forest-950);
+  background: var(--color-brand-950);
   color: #fff;
-  border: 1px solid rgb(227 178 60 / 0.55);
-  border-radius: 12px;
-  padding: 0.8rem 1rem 0.95rem 2.4rem;
+  border-radius: 10px;
+  padding: 0.8rem 1rem 0.95rem;
   font-size: var(--font-size-sub);
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
-  animation: toastEnter var(--dur-base) var(--ease-spring) both;
-}
-
-.toast-item::before {
-  content: '';
-  position: absolute;
-  left: 1rem;
-  top: 1.05rem;
-  width: 0.55rem;
-  height: 0.55rem;
-  background: var(--color-turmeric);
-  transform: rotate(45deg);
-  border-radius: 1px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  animation: toastEnter var(--dur-base) var(--ease-out) both;
 }
 
 .toast-item.is-leaving {
-  animation: toastLeave var(--dur-exit) var(--ease-in) forwards;
+  animation: toastLeave 150ms ease-in forwards;
 }
 
 .toast-progress {
@@ -286,33 +136,17 @@
   right: 0;
   bottom: 0;
   height: 3px;
-  background: var(--color-turmeric);
+  background: var(--color-brand-100);
   transform-origin: left center;
   animation: toastTimer 3s linear forwards;
 }
 
-/* ---------- Giảm chuyển động ---------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after,
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
+  *::after {
     animation-duration: 1ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 80ms !important;
-    transition-delay: 0ms !important;
+    transition-duration: 1ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .js-ready .reveal {
-    opacity: 1;
-    transform: none;
-  }
-
-  .card-interactive:hover,
-  .auth-bento-tile:hover {
-    transform: none !important;
   }
 }

@@ -67,6 +67,15 @@ class SupabaseAdmin:
     async def set_password(self, user_id: UUID, password: str) -> None:
         await self._call("PUT", f"/auth/v1/admin/users/{user_id}", {"password": password})
 
+    async def delete_user(self, user_id: UUID) -> None:
+        """Remove an Auth account (used to roll back a registration that failed half-way)."""
+        try:
+            await self._http.delete(
+                f"{self._base}/auth/v1/admin/users/{user_id}", headers=self._headers
+            )
+        except httpx.HTTPError as exc:
+            logger.warning("Supabase delete_user failed: %s", exc)
+
     async def create_user(self, username: str, password: str) -> UUID:
         """Create a confirmed Supabase Auth account and return its user UUID."""
         try:

@@ -4,8 +4,8 @@
   "description": "Xa bản, vẫn có nhà. Một ứng dụng – mọi việc của đời sống nội trú.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAF6EE",
-  "theme_color": "#163F33",
+  "background_color": "#F4F7F5",
+  "theme_color": "#14533C",
   "lang": "vi",
   "icons": [
     {

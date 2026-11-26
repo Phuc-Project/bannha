@@ -11,7 +11,6 @@
   const STORE_NAME = 'app_state';
   const STATE_KEY = 'v4';
 
-  const { CONFIG } = global.BanNha;
   const { uid, vnTodayIso, vnCurrentHour, makeQrToken, verifyQrToken } = global.BanNha.utils;
   const { canModifyMealCut, expandLeaveMeals, computeDonationMatches, scoreRiasec } =
     global.BanNha.domain;
@@ -47,7 +46,7 @@
         req.onsuccess = () => resolve(req.result || null);
         req.onerror = () => resolve(null);
       });
-      if (saved && saved.schemaVersion === 4 && !saved.session?.guest) {
+      if (saved && saved.schemaVersion === 5 && saved.session?.accessToken) {
         state = saved;
       }
     } catch {
@@ -56,8 +55,6 @@
   }
 
   async function persistToIdb() {
-    // Bản dùng thử không bao giờ ghi xuống máy
-    if (state.session.guest) return;
     try {
       const db = await openDb();
       if (!db) return;
@@ -121,18 +118,15 @@
   let flushing = false;
   let lastSyncError = '';
 
-  async function flushOutbox() {
+  async function flushOutbox(isRetry = false) {
     if (!state.online || flushing) return;
     const serverSync = global.BanNha.serverSync;
     if (!serverSync?.isEnabled(state.session)) {
-      // Chế độ Demo: không có máy chủ -> giải phóng Outbox ngay
-      if (state.outbox.length === 0) return;
-      state.outbox = [];
-      void persistToIdb();
-      notifyListeners();
-      return;
+      return; // chưa đăng nhập: không có gì để gửi
     }
     flushing = true;
+    let retryAfterRefresh = false;
+    let expired = false;
     try {
       if (state.outbox.length > 0) {
         const { done, rejected } = await serverSync.push(state);
@@ -142,13 +136,46 @@
       }
       await serverSync.pull(getState, mutate);
     } catch (error) {
+      if (error?.status === 401) {
+        const refreshed = isRetry ? false : await refreshSession();
+        retryAfterRefresh = refreshed === true;
+        expired = refreshed === false; // null = mất mạng khi làm mới -> giữ phiên, thử lại sau
+      }
       // Mất sóng / máy chủ lỗi: giữ Outbox, lần sau gửi lại
       lastSyncError = error?.message || 'Không kết nối được máy chủ.';
     } finally {
       flushing = false;
-      void persistToIdb();
-      notifyListeners();
     }
+    if (expired) {
+      await logoutAndWipe();
+      for (const fn of expiredListeners) fn();
+      return;
+    }
+    if (retryAfterRefresh) {
+      await flushOutbox(true);
+      return;
+    }
+    void persistToIdb();
+    notifyListeners();
+  }
+
+  const expiredListeners = new Set();
+
+  function onSessionExpired(fn) {
+    expiredListeners.add(fn);
+  }
+
+  /** true = đã làm mới; false = phiên hết hạn hẳn; null = mất mạng, chưa kết luận được. */
+  async function refreshSession() {
+    const res = await global.BanNha.authAdapter
+      .getActiveProvider()
+      .refresh(state.session.refreshToken);
+    if (res.network) return null;
+    if (!res.ok) return false;
+    state.session.accessToken = res.accessToken;
+    state.session.refreshToken = res.refreshToken || state.session.refreshToken;
+    await persistToIdb();
+    return true;
   }
 
   function getLastSyncError() {
@@ -207,47 +234,10 @@
 
   async function logoutAndWipe() {
     const token = state.session.accessToken;
-    if (!state.session.guest) {
-      await global.BanNha.authAdapter.getActiveProvider().signOut(token);
-    }
+    await global.BanNha.authAdapter.getActiveProvider().signOut(token);
     state = buildInitialState();
     document.documentElement.removeAttribute('data-text-size');
     await wipeIdb();
-    notifyListeners();
-  }
-
-  /**
-   * Chế độ DÙNG THỬ (khách, chưa đăng nhập): dùng hồ sơ mẫu theo vai trò,
-   * không gọi Auth, không ghi IndexedDB, thoát là xóa sạch.
-   */
-  const TRIAL_PROFILE_BY_ROLE = {
-    student: 'stu-02',
-    parent: 'par-01',
-    teacher: 'tch-01',
-    dorm_staff: 'drm-01',
-    medical_staff: 'med-01',
-    kitchen_staff: 'kit-01',
-    admin: 'adm-01',
-  };
-
-  function applyTrialRole(role) {
-    const safeRole = TRIAL_PROFILE_BY_ROLE[role] ? role : 'student';
-    state.session.userId = TRIAL_PROFILE_BY_ROLE[safeRole];
-    state.session.activeRole = safeRole;
-    state.session.guest = true;
-    state.session.accessToken = null;
-    state.session.authProvider = 'trial';
-    state.session.textSize = safeRole === 'parent' ? 'large' : 'normal';
-  }
-
-  function startTrial(role) {
-    state = buildInitialState();
-    applyTrialRole(role);
-    notifyListeners();
-  }
-
-  function switchTrialRole(role) {
-    applyTrialRole(role);
     notifyListeners();
   }
 
@@ -284,13 +274,12 @@
     enqueueOp,
     flushOutbox,
     getLastSyncError,
+    onSessionExpired,
     syncLeaveMealCuts,
     mutate,
     mutateAndFlushIdb,
     subscribe,
     logoutAndWipe,
-    startTrial,
-    switchTrialRole,
     helpers: {
       uid,
       vnTodayIso,

@@ -1,206 +1,276 @@
 /**
- * BẢN NHÀ — Màn hình Đăng nhập Editorial, Đổi mật khẩu lần đầu & Chọn vai trò
+ * BẢN NHÀ — Màn hình Đăng nhập, Đăng ký, Đổi mật khẩu lần đầu & Chọn vai trò
  */
 (function initAuthViews(global) {
   const { esc } = global.BanNha.utils;
   const { ROLE_LABELS } = global.BanNha.domain;
-  const { icon, tribalStripe } = global.BanNha.icons;
-  const { getAuthStatusSummary } = global.BanNha.authAdapter;
+  const { icon } = global.BanNha.icons;
+  const { CONFIG } = global.BanNha;
 
-  const QUICK_ACCOUNTS = [
-    { code: 'HS10A02', label: 'Học sinh (Nông Văn Toàn · 10A1)' },
-    { code: 'HS10A01', label: 'Học sinh lần đầu (Giàng A Minh)' },
-    { code: 'PH10A01', label: 'Phụ huynh 2 con (Giàng A Súa)' },
-    { code: 'QS001', label: 'Quản sinh (Hà Văn Quân)' },
-    { code: 'GV001', label: 'GVCN kiêm Quản sinh (Cô Hương)' },
-    { code: 'YT001', label: 'Nhân viên Y tế (Y sĩ Thảo)' },
-    { code: 'NB001', label: 'Nhà bếp (Cô Bích)' },
-    { code: 'ADMIN01', label: 'Quản trị trường (Thầy Khánh)' },
-  ];
+  function renderAuthTopbar() {
+    return `
+      <header class="auth-topbar">
+        <div class="auth-topbar-inner">
+          <button type="button" class="landing-brand" data-nav="/">
+            <span class="brand-mark">${icon('home', 18)}</span>
+            <span>
+              <strong>BẢN NHÀ</strong>
+              <small>${esc(CONFIG.schoolName)}</small>
+            </span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" data-nav="/">
+            Về trang giới thiệu
+          </button>
+        </div>
+      </header>`;
+  }
 
-  function renderLoginView(state, selectedCode = 'HS10A02', errorMsg = '') {
-    const authSummary = getAuthStatusSummary();
+  function renderLoginView(_state, selectedCode = '', errorMsg = '') {
     return `
       <div class="auth-stage">
-        ${tribalStripe()}
-        <div class="auth-split">
-          <section class="auth-editorial reveal-up" style="--stagger: 0">
-            <div class="stack-md">
-              <button type="button" class="header-chip-btn" style="align-self:flex-start" data-nav="/">
-                ← Trang giới thiệu
-              </button>
-              <h1 class="auth-editorial-title">Xa bản,<br /><em>vẫn có nhà.</em></h1>
-              <p class="auth-editorial-lead">
-                Đồng hành cùng học sinh dân tộc nội trú, thầy cô quản sinh và phụ huynh ở bản xa — trên cả những chiếc điện thoại cấu hình thấp, kể cả khi mất sóng.
-              </p>
-            </div>
+        ${renderAuthTopbar()}
+        <main class="auth-center">
+          <div class="auth-split">
+            <section class="auth-intro">
+              <div class="stack-md">
+                <span class="chip" style="align-self:flex-start;background:rgb(255 255 255 / 0.14);color:#fff">
+                  Cổng thông tin nội trú
+                </span>
+                <h1>Xa bản, vẫn có nhà.</h1>
+                <p class="auth-intro-lead">
+                  Đăng nhập để theo dõi điểm danh, bữa ăn, kết quả học tập và liên lạc giữa bản với trường.
+                </p>
+              </div>
 
-            <div class="auth-live-bento">
-              <div class="auth-bento-tile">
-                <strong>Điểm danh QR ngoại tuyến</strong>
-                <span>Quét thẻ phòng ở không cần sóng 4G, tự đồng bộ khi có mạng.</span>
-              </div>
-              <div class="auth-bento-tile">
-                <strong>★ Sổ liên lạc & Gia sư tối</strong>
-                <span>Phụ huynh xem tin con chữ lớn 18px; học sinh hỏi bài gợi mở từng bước.</span>
-              </div>
-              <div class="auth-bento-tile">
-                <strong>Bếp ăn & Y tế học đường</strong>
-                <span>Tự động cắt suất khi duyệt đơn về bản; nút giữ SOS 2 giây khẩn cấp.</span>
-              </div>
-            </div>
-          </section>
+              <ul class="auth-feature-list">
+                <li>
+                  <span>${icon('qr', 18)}</span>
+                  <div>
+                    <strong>Điểm danh và xin phép thuận tiện</strong>
+                    Quét thẻ nội trú nhanh gọn, tự động liên thông cắt suất với nhà bếp.
+                  </div>
+                </li>
+                <li>
+                  <span>${icon('contact', 18)}</span>
+                  <div>
+                    <strong>Phụ huynh dễ theo dõi con từ xa</strong>
+                    Hỗ trợ chế độ chữ lớn, cập nhật điểm số và thông báo của giáo viên chủ nhiệm.
+                  </div>
+                </li>
+                <li>
+                  <span>${icon('offline', 18)}</span>
+                  <div>
+                    <strong>An toàn khi dùng điện thoại chung</strong>
+                    Tự động xóa dữ liệu trên máy khi đăng xuất.
+                  </div>
+                </li>
+              </ul>
+            </section>
 
-          <section class="auth-panel reveal-up" style="--stagger: 1" aria-label="Đăng nhập tài khoản trường cấp">
+            <section class="auth-panel" aria-label="Biểu mẫu đăng nhập">
+              <div class="stack-sm">
+                <h2>Đăng nhập tài khoản</h2>
+                <p class="text-muted">Nhập tên đăng nhập và mật khẩu bạn đã đăng ký.</p>
+              </div>
+
+              ${errorMsg ? `<div class="alert alert-danger" role="alert">${esc(errorMsg)}</div>` : ''}
+
+              <form class="stack-md" data-form="login">
+                <div class="field">
+                  <label for="login-code">Tên đăng nhập</label>
+                  <input
+                    id="login-code"
+                    name="code"
+                    class="input"
+                    value="${esc(selectedCode)}"
+                    placeholder="Ví dụ: phuc2010"
+                    autocomplete="username"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="login-password">Mật khẩu</label>
+                  <input
+                    id="login-password"
+                    name="password"
+                    type="password"
+                    class="input"
+                    placeholder="Nhập mật khẩu của bạn"
+                    autocomplete="current-password"
+                    required
+                  />
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                  Đăng nhập
+                </button>
+              </form>
+
+              <div class="card-sunken">
+                <p class="text-muted">
+                  Chưa có tài khoản? Học sinh và phụ huynh tự đăng ký trong 1 phút. Thầy cô và nhân viên dùng tài khoản nhà trường cấp.
+                </p>
+                <button type="button" class="btn btn-secondary btn-block" data-nav="/dang-ky">Đăng ký tài khoản mới</button>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>`;
+  }
+
+  function renderRegisterView(errorMsg = '', draft = {}) {
+    const role = draft.role === 'parent' ? 'parent' : 'student';
+    return `
+      <div class="auth-stage">
+        ${renderAuthTopbar()}
+        <main class="auth-center">
+          <section class="auth-panel auth-panel-single" aria-label="Biểu mẫu đăng ký">
             <div class="stack-sm">
-              <h2 class="section-title">Đăng nhập bằng mã trường cấp</h2>
-              <p class="text-muted">
-                Trạng thái xác thực: <strong>${esc(authSummary)}</strong>
-              </p>
-            </div>
-
-            <div class="auth-trial-cta">
-              <div>
-                <strong>Chưa có tài khoản?</strong>
-                <p class="text-muted">Dùng thử ngay với dữ liệu mẫu, không cần mã hay mật khẩu.</p>
-              </div>
-              <button type="button" class="btn btn-accent btn-sm" data-action="start-trial" data-role="student">
-                ${icon('play', 15)} Dùng thử
-              </button>
+              <h1>Đăng ký tài khoản</h1>
+              <p class="text-muted">Dành cho học sinh và phụ huynh. Tài khoản thầy cô và nhân viên do nhà trường cấp.</p>
             </div>
 
             ${errorMsg ? `<div class="alert alert-danger" role="alert">${esc(errorMsg)}</div>` : ''}
 
-            <form class="stack-md" data-form="login">
+            <form class="stack-md" data-form="register">
               <div class="field">
-                <label for="login-code">Mã học sinh / cán bộ / phụ huynh</label>
-                <input
-                  id="login-code"
-                  name="code"
-                  class="input"
-                  value="${esc(selectedCode)}"
-                  autocomplete="username"
-                  required
-                />
+                <label for="rg-role">Bạn là</label>
+                <select id="rg-role" name="role" class="select">
+                  <option value="student" ${role === 'student' ? 'selected' : ''}>Học sinh</option>
+                  <option value="parent" ${role === 'parent' ? 'selected' : ''}>Phụ huynh</option>
+                </select>
               </div>
-
               <div class="field">
-                <label for="login-password">Mật khẩu</label>
-                <input
-                  id="login-password"
-                  name="password"
-                  type="password"
-                  class="input"
-                  value="MatKhau2026"
-                  autocomplete="current-password"
-                  required
-                />
+                <label for="rg-name">Họ và tên</label>
+                <input id="rg-name" name="fullName" class="input" value="${esc(draft.fullName || '')}"
+                  autocomplete="name" minlength="2" maxlength="120" required />
               </div>
-
-              <button type="submit" class="btn btn-primary">
-                <span>Vào ứng dụng BẢN NHÀ</span>
-                <span class="btn-arrow">${icon('arrow', 18)}</span>
-              </button>
+              <div class="field">
+                <label for="rg-eth">Dân tộc (không bắt buộc)</label>
+                <input id="rg-eth" name="ethnicity" class="input" value="${esc(draft.ethnicity || '')}" maxlength="40" />
+              </div>
+              <div class="field">
+                <label for="rg-user">Tên đăng nhập</label>
+                <input id="rg-user" name="username" class="input" value="${esc(draft.username || '')}"
+                  autocomplete="username" autocapitalize="none" spellcheck="false"
+                  pattern="[A-Za-z]{2,6}[0-9]{2,6}" placeholder="Ví dụ: phuc2010" required />
+                <p class="text-muted">2–6 chữ cái không dấu, rồi 2–6 chữ số.</p>
+              </div>
+              <div class="field">
+                <label for="rg-pw">Mật khẩu</label>
+                <input id="rg-pw" name="password" type="password" class="input" minlength="8"
+                  placeholder="Ít nhất 8 ký tự, gồm cả chữ và số" autocomplete="new-password" required />
+              </div>
+              <div class="field">
+                <label for="rg-pw2">Nhập lại mật khẩu</label>
+                <input id="rg-pw2" name="password2" type="password" class="input" minlength="8"
+                  autocomplete="new-password" required />
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Tạo tài khoản</button>
             </form>
 
-            <div class="card-sunken stack-sm">
-              <p class="text-muted"><strong>Chọn nhanh tài khoản mẫu</strong> (mật khẩu mặc định <span class="code-pill">MatKhau2026</span>):</p>
-              <div class="row-wrap">
-                ${QUICK_ACCOUNTS.map(
-                  (acc) => `
-                  <button
-                    type="button"
-                    class="btn btn-secondary btn-sm"
-                    data-action="prefill-login"
-                    data-code="${acc.code}"
-                  >
-                    ${esc(acc.label)}
-                  </button>`,
-                ).join('')}
-              </div>
-            </div>
-
-            <div class="alert alert-info">
-              <strong>Gợi ý cho đồng đội làm Auth:</strong> Mở <span class="code-pill">js/config.js</span> và <span class="code-pill">js/services/auth-adapter.js</span> — đã viết sẵn trọn bộ <strong>Supabase Auth</strong> & <strong>Firebase Auth</strong>, chỉ cần điền khóa là chạy thật.
-            </div>
+            <p class="text-muted">
+              Đã có tài khoản?
+              <button type="button" class="btn btn-ghost btn-sm" data-nav="/dang-nhap">Đăng nhập</button>
+            </p>
           </section>
-        </div>
-        ${tribalStripe()}
+        </main>
       </div>`;
   }
 
   function renderChangePasswordView(user, errorMsg = '') {
     return `
       <div class="auth-stage">
-        ${tribalStripe()}
-        <div class="auth-split" style="max-width:36rem;grid-template-columns:1fr">
-          <section class="auth-panel reveal-up">
-            <span class="chip chip-star">Bảo mật lần đăng nhập đầu tiên</span>
-            <h1>Đổi mật khẩu riêng của ${esc(user.fullName)}</h1>
-            <p class="text-muted">
-              Để bảo vệ thông tin nội trú trên điện thoại dùng chung, bạn hãy đặt mật khẩu mới tối thiểu 8 ký tự gồm cả chữ và số.
-            </p>
+        ${renderAuthTopbar()}
+        <main class="auth-center">
+          <section class="auth-panel auth-panel-single">
+            <div class="stack-sm">
+              <span class="chip" style="align-self:flex-start">Bảo mật lần đăng nhập đầu tiên</span>
+              <h1>Đổi mật khẩu mới</h1>
+              <p class="text-muted">
+                Chào <strong>${esc(user.fullName)}</strong>. Hãy đặt mật khẩu riêng có ít nhất 8 ký tự gồm cả chữ và số để bảo vệ tài khoản của bạn.
+              </p>
+            </div>
+
             ${errorMsg ? `<div class="alert alert-danger" role="alert">${esc(errorMsg)}</div>` : ''}
+
             <form class="stack-md" data-form="change-password">
               <div class="field">
-                <label for="cp-current">Mật khẩu hiện tại trường cấp</label>
-                <input id="cp-current" name="currentPassword" type="password" class="input" value="MatKhau2026" required />
+                <label for="cp-current">Mật khẩu hiện tại</label>
+                <input
+                  id="cp-current"
+                  name="currentPassword"
+                  type="password"
+                  class="input"
+                  placeholder="Nhập mật khẩu trường đã cấp"
+                  autocomplete="current-password"
+                  required
+                />
               </div>
               <div class="field">
-                <label for="cp-new">Mật khẩu mới (ít nhất 8 ký tự, có chữ và số)</label>
-                <input id="cp-new" name="newPassword" type="password" class="input" placeholder="Ví dụ: BanNha2027" required />
+                <label for="cp-new">Mật khẩu mới</label>
+                <input
+                  id="cp-new"
+                  name="newPassword"
+                  type="password"
+                  class="input"
+                  placeholder="Ít nhất 8 ký tự, gồm cả chữ và số"
+                  autocomplete="new-password"
+                  required
+                />
               </div>
               <div class="row-wrap">
-                <button type="submit" class="btn btn-primary">Lưu mật khẩu mới & Tiếp tục</button>
-                <button type="button" class="btn btn-secondary" data-action="logout">Quay lại đăng nhập</button>
+                <button type="submit" class="btn btn-primary">Lưu mật khẩu mới</button>
+                <button type="button" class="btn btn-secondary" data-action="logout">Quay lại</button>
               </div>
             </form>
           </section>
-        </div>
-        ${tribalStripe()}
+        </main>
       </div>`;
   }
 
   function renderRolePickerView(user) {
     return `
       <div class="auth-stage">
-        ${tribalStripe()}
-        <div class="auth-split" style="max-width:42rem;grid-template-columns:1fr">
-          <section class="auth-panel reveal-up">
-            <span class="chip">Tài khoản kiêm nhiệm nhiều công tác</span>
-            <h1>Chọn vai trò làm việc hôm nay</h1>
-            <p class="text-muted">
-              Xin chào <strong>${esc(user.fullName)}</strong>. Tài khoản của Thầy/Cô có ${user.roles.length} vai trò trong trường:
-            </p>
+        ${renderAuthTopbar()}
+        <main class="auth-center">
+          <section class="auth-panel auth-panel-single" style="max-width:40rem">
+            <div class="stack-sm">
+              <span class="chip" style="align-self:flex-start">Tài khoản kiêm nhiệm</span>
+              <h1>Chọn vai trò làm việc</h1>
+              <p class="text-muted">
+                Xin chào <strong>${esc(user.fullName)}</strong>. Chọn công tác bạn muốn thực hiện ngay bây giờ:
+              </p>
+            </div>
             <div class="grid-2">
               ${user.roles
                 .map(
-                  (r, idx) => `
+                  (r) => `
                 <button
                   type="button"
-                  class="card card-interactive reveal-up"
-                  style="--stagger:${idx + 1}"
+                  class="card card-interactive"
                   data-action="pick-role"
                   data-role="${r}"
                 >
-                  <div class="icon-box">${icon(r === 'teacher' ? 'contact' : 'dorm', 22)}</div>
+                  <span class="icon-box tone-brand">${icon(r === 'teacher' ? 'contact' : 'dorm', 20)}</span>
                   <div class="stack-sm">
                     <h3>${esc(ROLE_LABELS[r] || r)}</h3>
-                    <p class="text-muted">Chuyển sang bàn làm việc ${esc(ROLE_LABELS[r] || r)}.</p>
+                    <p class="text-muted">Mở giao diện ${esc(ROLE_LABELS[r] || r)}.</p>
                   </div>
                 </button>`,
                 )
                 .join('')}
             </div>
           </section>
-        </div>
-        ${tribalStripe()}
+        </main>
       </div>`;
   }
 
   global.BanNha = global.BanNha || {};
   global.BanNha.authViews = {
     renderLoginView,
+    renderRegisterView,
     renderChangePasswordView,
     renderRolePickerView,
   };

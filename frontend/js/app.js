@@ -1,19 +1,19 @@
 /**
  * BẢN NHÀ — Bộ điều phối trung tâm
- * Router (hash), View Transitions, chế độ Dùng thử, hiệu ứng cuộn/spotlight & ủy quyền sự kiện.
+ * Router (hash), đồng bộ phiên làm việc, xử lý biểu mẫu và ủy quyền sự kiện.
  */
 (function initApp(global) {
   const IS_FILE = global.location.protocol === 'file:';
   const { store, authAdapter, aiTutorApi, shell, authViews, dashboards, landing } = global.BanNha;
-  const { modulesLife, modulesStudyHealth, modulesCommunityAdmin, styleguide } = global.BanNha;
+  const { modulesLife, modulesStudyHealth, modulesCommunityAdmin } = global.BanNha;
   const { renderQrSvg, makeQrToken } = global.BanNha.utils;
   const REDUCED_MOTION = global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-  let loginPrefillCode = 'HS10A02';
+  let loginPrefillCode = '';
+  let registerDraft = {};
   let authError = '';
   let lastRenderedRoute = null;
   let enteringTimer = null;
-  let revealObserver = null;
 
   function showToast(message) {
     if (!message) return;
@@ -47,56 +47,21 @@
   function hydrateDynamicWidgets() {
     document.querySelectorAll('[data-qr]').forEach((el) => {
       const tok = el.getAttribute('data-qr') || '';
-      el.innerHTML = renderQrSvg(tok);
+      if (tok) el.innerHTML = renderQrSvg(tok);
     });
-
-    // Đếm số mượt cho ô thống kê — chỉ khi vừa đổi màn, tôn trọng giảm chuyển động
-    if (REDUCED_MOTION || !document.getElementById('app')?.hasAttribute('data-entering')) return;
-    document.querySelectorAll('[data-count]').forEach((el) => {
-      const target = Number(el.getAttribute('data-count') || '0');
-      if (!Number.isFinite(target) || target <= 0) return;
-      const start = performance.now();
-      const dur = 520;
-      const step = (now) => {
-        const p = Math.min(1, (now - start) / dur);
-        const eased = 1 - Math.pow(1 - p, 3);
-        el.textContent = String(Math.round(target * eased));
-        if (p < 1) global.requestAnimationFrame(step);
-      };
-      global.requestAnimationFrame(step);
-    });
-  }
-
-  /** Hiện dần các khối `.reveal` khi cuộn tới (IntersectionObserver) */
-  function observeReveals() {
-    const nodes = document.querySelectorAll('.reveal:not(.is-in)');
-    if (!nodes.length) return;
-    if (REDUCED_MOTION || typeof global.IntersectionObserver !== 'function') {
-      nodes.forEach((n) => n.classList.add('is-in'));
-      return;
+    const chatLog = document.getElementById('tutor-chat-log');
+    if (chatLog) {
+      chatLog.scrollTop = chatLog.scrollHeight;
     }
-    if (revealObserver) revealObserver.disconnect();
-    revealObserver = new global.IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-in');
-            revealObserver.unobserve(entry.target);
-          }
-        }
-      },
-      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
-    );
-    nodes.forEach((n) => revealObserver.observe(n));
   }
 
   function markEntering(appEl) {
     appEl.setAttribute('data-entering', '');
     if (enteringTimer) global.clearTimeout(enteringTimer);
-    enteringTimer = global.setTimeout(() => appEl.removeAttribute('data-entering'), 900);
+    enteringTimer = global.setTimeout(() => appEl.removeAttribute('data-entering'), 400);
   }
 
-  function renderApp(withTransition = false) {
+  function renderApp() {
     const appEl = document.getElementById('app');
     if (!appEl) return;
     const state = store.getState();
@@ -111,17 +76,15 @@
     const user = store.getCurrentUser();
 
     let html = '';
-    const isGuest = Boolean(state.session.guest);
-    if (route === '/dev/ui') {
-      html = styleguide.renderStyleguideView(state);
-    } else if (route === '/dang-nhap') {
+    if (route === '/dang-nhap' && !user) {
       html = authViews.renderLoginView(state, loginPrefillCode, authError);
+    } else if (route === '/dang-ky' && !user) {
+      html = authViews.renderRegisterView(authError, registerDraft);
     } else if (!user) {
-      // Chưa đăng nhập → trang giới thiệu + cổng Dùng thử
       route = '/';
       updateLocationRoute('/', true);
       html = landing.renderLandingView(state);
-    } else if (!isGuest && user.mustChangePassword) {
+    } else if (user.mustChangePassword) {
       route = '/doi-mat-khau';
       updateLocationRoute('/doi-mat-khau', true);
       html = authViews.renderChangePasswordView(user, authError);
@@ -143,6 +106,7 @@
       else if (route === '/admin') inner = modulesCommunityAdmin.renderAdminView(state);
       else {
         route = '/';
+        updateLocationRoute('/', true);
         inner = dashboards.renderDashboard(state);
       }
       html = shell.wrapShell(state, route, inner);
@@ -152,31 +116,18 @@
     const isNewScreen = routeKey !== lastRenderedRoute;
     lastRenderedRoute = routeKey;
 
-    const commitDom = () => {
-      if (isNewScreen) markEntering(appEl);
-      appEl.innerHTML = html;
-      hydrateDynamicWidgets();
-      observeReveals();
-      syncScrollState();
-    };
-
-    if (withTransition && typeof document.startViewTransition === 'function') {
-      document.startViewTransition(commitDom);
-    } else {
-      commitDom();
-    }
+    if (isNewScreen) markEntering(appEl);
+    appEl.innerHTML = html;
+    hydrateDynamicWidgets();
   }
 
   function navigateTo(path) {
     authError = '';
     updateLocationRoute(path);
-    renderApp(true);
+    renderApp();
     global.scrollTo({ top: 0, behavior: 'instant' });
   }
 
-  /**
-   * Đăng nhập Supabase thật: lấy hồ sơ từ /api/v1/me, thay dữ liệu mẫu bằng dữ liệu máy chủ.
-   */
   async function completeServerLogin(res) {
     const session = { accessToken: res.accessToken, authProvider: 'supabase', activeRole: null };
     try {
@@ -184,8 +135,8 @@
       await store.mutateAndFlushIdb((s) => {
         global.BanNha.serverSync.resetToServerState(s, profile, children);
         s.session.userId = profile.id;
-        s.session.guest = false;
         s.session.accessToken = res.accessToken;
+        s.session.refreshToken = res.refreshToken || null;
         s.session.authProvider = 'supabase';
         s.session.activeRole = profile.roles.length === 1 ? profile.roles[0] : null;
         s.session.textSize = profile.roles.includes('parent') ? 'large' : 'normal';
@@ -195,8 +146,8 @@
       authError =
         error?.status === 401 || error?.status === 403
           ? 'Tài khoản chưa được nhà trường kích hoạt hồ sơ.'
-          : `Không tải được hồ sơ từ máy chủ: ${error?.message || 'lỗi mạng'}`;
-      renderApp(false);
+          : 'Không thể kết nối tới máy chủ nhà trường. Vui lòng thử lại sau.';
+      renderApp();
       return false;
     }
   }
@@ -207,57 +158,56 @@
     const state = store.getState();
     const user = store.getCurrentUser();
 
-    if (kind === 'login') {
-      const code = String(fd.get('code') || '').trim();
+    if (kind === 'register') {
+      const draft = {
+        role: String(fd.get('role') || 'student'),
+        fullName: String(fd.get('fullName') || '').trim(),
+        ethnicity: String(fd.get('ethnicity') || '').trim(),
+        username: String(fd.get('username') || '').trim().toLowerCase(),
+      };
+      const password = String(fd.get('password') || '');
+      registerDraft = draft;
+      if (password !== String(fd.get('password2') || '')) {
+        authError = 'Hai lần nhập mật khẩu chưa khớp nhau.';
+        renderApp();
+        return;
+      }
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      const reg = await authAdapter.getActiveProvider().register({ ...draft, password });
+      if (submitBtn) submitBtn.disabled = false;
+      if (!reg.ok) {
+        authError = reg.error;
+        renderApp();
+        return;
+      }
+      registerDraft = {};
+      showToast('Đăng ký thành công! Đang đăng nhập…');
+    }
+
+    if (kind === 'login' || kind === 'register') {
+      const code =
+        kind === 'register'
+          ? String(fd.get('username') || '').trim().toLowerCase()
+          : String(fd.get('code') || '').trim();
       const password = String(fd.get('password') || '');
       const provider = authAdapter.getActiveProvider();
-      const res = await provider.signIn(code, password, state.profiles);
+      const res = await provider.signIn(code, password);
       if (!res.ok) {
         authError = res.error;
         loginPrefillCode = code;
-        renderApp(false);
+        if (kind === 'register') updateLocationRoute('/dang-nhap');
+        renderApp();
         return;
       }
       authError = '';
-      if (res.provider === 'supabase' && global.BanNha.serverSync.isEnabled({
-        accessToken: res.accessToken,
-        authProvider: 'supabase',
-      })) {
-        const ok = await completeServerLogin(res);
-        if (!ok) return;
-        const serverUser = store.getCurrentUser();
-        if (serverUser.mustChangePassword) navigateTo('/doi-mat-khau');
-        else if (serverUser.roles.length > 1) navigateTo('/chon-vai-tro');
-        else navigateTo('/');
-        void store.flushOutbox();
-        return;
-      }
-      await store.mutateAndFlushIdb((s) => {
-        let profile = s.profiles.find((p) => p.code.toUpperCase() === res.code.toUpperCase());
-        if (!profile) {
-          profile = {
-            id: res.uid || store.helpers.uid('usr'),
-            code: res.code,
-            fullName: res.code,
-            roles: ['student'],
-            className: '10A1',
-            room: 'A201',
-            ethnicity: 'Tày',
-            mustChangePassword: false,
-          };
-          s.profiles.push(profile);
-        }
-        s.session.userId = profile.id;
-        s.session.guest = false;
-        s.session.accessToken = res.accessToken;
-        s.session.authProvider = res.provider;
-        s.session.activeRole = profile.roles.length === 1 ? profile.roles[0] : null;
-        s.session.textSize = profile.roles.includes('parent') ? 'large' : 'normal';
-      });
-      const loggedIn = store.getCurrentUser();
-      if (loggedIn.mustChangePassword) navigateTo('/doi-mat-khau');
-      else if (loggedIn.roles.length > 1) navigateTo('/chon-vai-tro');
+      const ok = await completeServerLogin(res);
+      if (!ok) return;
+      const serverUser = store.getCurrentUser();
+      if (serverUser.mustChangePassword) navigateTo('/doi-mat-khau');
+      else if (serverUser.roles.length > 1) navigateTo('/chon-vai-tro');
       else navigateTo('/');
+      void store.flushOutbox();
       return;
     }
 
@@ -269,18 +219,15 @@
         .changePassword(state.session.accessToken, curPw, newPw);
       if (!res.ok) {
         authError = res.error;
-        renderApp(false);
+        renderApp();
         return;
       }
       authError = '';
       await store.mutateAndFlushIdb((s) => {
         const p = s.profiles.find((x) => x.id === s.session.userId);
-        if (p) {
-          p.mustChangePassword = false;
-          p.customPassword = newPw;
-        }
+        if (p) p.mustChangePassword = false;
       });
-      showToast('Đã cập nhật mật khẩu mới an toàn.');
+      showToast('Đã cập nhật mật khẩu mới.');
       navigateTo('/');
       return;
     }
@@ -319,9 +266,9 @@
       showToast(
         state.online
           ? 'Đã gửi đơn xin phép về bản tới thầy cô Quản sinh.'
-          : 'Đơn đã lưu vào máy, sẽ tự gửi khi có sóng.',
+          : 'Đơn đã lưu trên máy, sẽ tự gửi khi có sóng.',
       );
-      renderApp(false);
+      renderApp();
       return;
     }
 
@@ -332,8 +279,8 @@
       store.mutate((s) => {
         s.roomReports.unshift({
           id: roomIssueId,
-          room: user?.room || 'A201',
-          reportedBy: user?.id || 'stu-01',
+          room: user?.room || '',
+          reportedBy: user?.id || '',
           category,
           description,
           status: 'open',
@@ -347,14 +294,14 @@
         });
       });
       showToast('Đã ghi nhận báo hỏng phòng ở.');
-      renderApp(false);
+      renderApp();
       return;
     }
 
     if (kind === 'meal-feedback') {
       const feedback = {
         id: store.helpers.uid('fb'),
-        studentId: user?.id || 'stu-01',
+        studentId: user?.id || '',
         dishSuggestion: String(fd.get('dishSuggestion') || '').trim(),
         rating: 5,
         note: String(fd.get('note') || '').trim(),
@@ -367,16 +314,17 @@
           note: feedback.note,
         });
       });
-      showToast('Cảm ơn em đã gửi góp ý cho Nhà bếp!');
-      renderApp(false);
+      showToast('Đã gửi góp ý tới Nhà bếp.');
+      renderApp();
       return;
     }
 
     if (kind === 'add-grade') {
+      const targetStudent = store.getStudents()[0];
       store.mutate((s) => {
         s.grades.push({
           id: store.helpers.uid('gr'),
-          studentId: 'stu-01',
+          studentId: targetStudent ? targetStudent.id : user?.id || '',
           subject: String(fd.get('subject') || ''),
           oral: 8,
           quiz15: 8,
@@ -384,8 +332,8 @@
           finalExam: Number(fd.get('finalExam') || 8),
         });
       });
-      showToast('Đã lưu điểm mới và cập nhật Sổ liên lạc.');
-      renderApp(false);
+      showToast('Đã lưu điểm mới vào Sổ liên lạc.');
+      renderApp();
       return;
     }
 
@@ -393,15 +341,15 @@
       store.mutate((s) => {
         s.announcements.unshift({
           id: store.helpers.uid('an'),
-          className: '10A1',
-          authorId: user?.id || 'tch-01',
+          className: user?.className || 'Toàn trường',
+          authorId: user?.id || '',
           title: String(fd.get('title') || ''),
           body: String(fd.get('body') || ''),
           createdAt: 'Vừa xong',
         });
       });
-      showToast('Đã phát thông báo tới Phụ huynh.');
-      renderApp(false);
+      showToast('Đã gửi thông báo tới phụ huynh.');
+      renderApp();
       return;
     }
 
@@ -435,14 +383,14 @@
         s.tutorState.attemptCount += 1;
         s.tutorState.usedToday += 1;
       });
-      renderApp(false);
+      renderApp();
       return;
     }
 
     if (kind === 'report-sick') {
       const report = {
         id: store.helpers.uid('hr'),
-        studentId: user?.id || 'stu-01',
+        studentId: user?.id || '',
         symptoms: String(fd.get('symptoms') || ''),
         severity: String(fd.get('severity') || 'Nhẹ'),
         status: 'Phòng Y tế đã tiếp nhận',
@@ -456,8 +404,8 @@
           severity: report.severity,
         });
       });
-      showToast('Đã gửi báo ốm tới cán bộ Y tế trường.');
-      renderApp(false);
+      showToast('Đã gửi báo ốm tới Phòng Y tế.');
+      renderApp();
       return;
     }
 
@@ -465,15 +413,15 @@
       store.mutate((s) => {
         s.donations.unshift({
           id: store.helpers.uid('dn'),
-          donorId: user?.id || 'stu-01',
+          donorId: user?.id || '',
           category: String(fd.get('category') || 'winter_coat'),
           sizeOrGrade: String(fd.get('sizeOrGrade') || 'Size M'),
           title: String(fd.get('title') || ''),
           status: 'available',
         });
       });
-      showToast('Đã đăng món đồ tặng lên Ngân hàng đồ cũ.');
-      renderApp(false);
+      showToast('Đã đăng món đồ lên Ngân hàng đồ cũ.');
+      renderApp();
       return;
     }
 
@@ -481,7 +429,7 @@
       store.mutate((s) => {
         s.itemRequests.unshift({
           id: store.helpers.uid('rq'),
-          studentId: user?.id || 'stu-01',
+          studentId: user?.id || '',
           category: String(fd.get('category') || 'winter_coat'),
           sizeOrGrade: String(fd.get('sizeOrGrade') || 'Size M'),
           urgency: 'high',
@@ -490,7 +438,7 @@
         });
       });
       showToast('Đã gửi đăng ký kín đáo tới thầy cô Quản sinh.');
-      renderApp(false);
+      renderApp();
       return;
     }
 
@@ -506,8 +454,8 @@
       store.mutate((s) => {
         s.careerResult = store.helpers.scoreRiasec(scores);
       });
-      showToast('Đã phân tích xong tổ hợp nghề nghiệp Holland!');
-      renderApp(false);
+      showToast('Đã hoàn tất gợi ý nhóm ngành phù hợp.');
+      renderApp();
       return;
     }
 
@@ -515,7 +463,7 @@
       store.mutate((s) => {
         s.culturePosts.unshift({
           id: store.helpers.uid('cu'),
-          authorId: user?.id || 'stu-01',
+          authorId: user?.id || '',
           ethnicity: String(fd.get('ethnicity') || 'Mông'),
           category: String(fd.get('category') || 'Lễ hội truyền thống'),
           title: String(fd.get('title') || ''),
@@ -523,8 +471,8 @@
           approved: false,
         });
       });
-      showToast('Bài viết đã gửi chờ Thầy/Cô duyệt đăng.');
-      renderApp(false);
+      showToast('Đã gửi bài viết chờ thầy cô duyệt đăng.');
+      renderApp();
       return;
     }
 
@@ -564,9 +512,9 @@
       showToast(
         mode === 'commit'
           ? `Đã tạo thành công ${validRows.length} tài khoản mới.`
-          : `Kiểm tra thử hoàn tất: ${validRows.length} dòng hợp lệ.`,
+          : `Kiểm tra hoàn tất: ${validRows.length} dòng hợp lệ.`,
       );
-      renderApp(false);
+      renderApp();
     }
   }
 
@@ -596,7 +544,7 @@
     });
     if (matchedName) {
       showToast(`Đã điểm danh: ${matchedName}`);
-      renderApp(false);
+      renderApp();
     }
   }
 
@@ -604,28 +552,6 @@
     const act = btn.getAttribute('data-action');
     const state = store.getState();
 
-    if (act === 'prefill-login') {
-      loginPrefillCode = btn.getAttribute('data-code') || 'HS10A02';
-      authError = '';
-      renderApp(false);
-      return;
-    }
-    if (act === 'start-trial') {
-      const role = btn.getAttribute('data-role') || 'student';
-      const goto = btn.getAttribute('data-goto') || '/';
-      authError = '';
-      store.startTrial(role);
-      navigateTo(goto);
-      const label = landing.TRIAL_ROLES.find((r) => r.role === role)?.title || 'Học sinh';
-      showToast(`Đang dùng thử với vai ${label}. Bạn có thể đổi vai trên thanh vàng phía trên.`);
-      return;
-    }
-    if (act === 'exit-trial') {
-      await store.logoutAndWipe();
-      navigateTo('/');
-      showToast('Đã thoát bản dùng thử, mọi dữ liệu thử đã được xóa.');
-      return;
-    }
     if (act === 'scroll-to') {
       const targetId = btn.getAttribute('data-target') || 'top';
       const el = document.getElementById(targetId);
@@ -648,29 +574,16 @@
     }
     if (act === 'logout') {
       await store.logoutAndWipe();
-      loginPrefillCode = 'HS10A02';
+      loginPrefillCode = '';
       navigateTo('/dang-nhap');
-      showToast('Đã đăng xuất và xóa sạch dữ liệu tạm trên thiết bị.');
-      return;
-    }
-    if (act === 'toggle-online') {
-      store.mutate((s) => {
-        s.online = !s.online;
-      });
-      if (store.getState().online) {
-        await store.flushOutbox();
-        showToast('Đã có mạng trở lại — tự động đồng bộ hàng đợi!');
-      } else {
-        showToast('Đang mô phỏng chế độ mất sóng ngoại tuyến.');
-      }
-      renderApp(false);
+      showToast('Đã đăng xuất và xóa dữ liệu tạm trên thiết bị.');
       return;
     }
     if (act === 'toggle-text-size') {
       store.mutate((s) => {
         s.session.textSize = s.session.textSize === 'large' ? 'normal' : 'large';
       });
-      renderApp(false);
+      renderApp();
       return;
     }
     if (act === 'switch-tab') {
@@ -679,14 +592,14 @@
       store.mutate((s) => {
         if (mod && tab) s.ui.activeTabs[mod] = tab;
       });
-      renderApp(true);
+      renderApp();
       return;
     }
     if (act === 'select-child') {
       store.mutate((s) => {
-        s.session.selectedChildId = btn.getAttribute('data-child-id') || 'stu-01';
+        s.session.selectedChildId = btn.getAttribute('data-child-id') || null;
       });
-      renderApp(true);
+      renderApp();
       return;
     }
     if (act === 'scan-qr') {
@@ -707,10 +620,10 @@
       });
       showToast(
         status === 'approved'
-          ? `Đã duyệt đơn và tự động báo cắt suất bếp (${cutCount} bữa).`
+          ? `Đã duyệt đơn và tự động báo cắt ${cutCount} bữa ăn với Nhà bếp.`
           : 'Đã cập nhật từ chối đơn xin phép.',
       );
-      renderApp(false);
+      renderApp();
       return;
     }
     if (act === 'resolve-room') {
@@ -720,14 +633,14 @@
         if (r) r.status = 'resolved';
         store.enqueueOp('room_issue.resolve', { id });
       });
-      showToast('Đã đánh dấu hoàn thành sửa chữa phòng ở.');
-      renderApp(false);
+      showToast('Đã đánh dấu sửa xong thiết bị phòng ở.');
+      renderApp();
       return;
     }
     if (act === 'toggle-meal-cut') {
       const date = btn.getAttribute('data-date') || '';
       const meal = btn.getAttribute('data-meal') || 'dinner';
-      const userId = store.getCurrentUser()?.id || 'stu-01';
+      const userId = store.getCurrentUser()?.id || '';
       store.mutate((s) => {
         const idx = s.mealCuts.findIndex(
           (c) => c.studentId === userId && c.date === date && c.meal === meal,
@@ -751,8 +664,17 @@
           cancelled: idx < 0,
         });
       });
-      showToast('Đã cập nhật báo suất ăn với Nhà bếp.');
-      renderApp(false);
+      showToast('Đã cập nhật suất ăn với Nhà bếp.');
+      renderApp();
+      return;
+    }
+    if (act === 'quick-tutor-prompt') {
+      const prompt = btn.getAttribute('data-prompt') || '';
+      const input = document.getElementById('tutor-input');
+      if (input) {
+        input.value = prompt;
+        input.focus();
+      }
       return;
     }
     if (act === 'unlock-tutor-solution') {
@@ -777,17 +699,29 @@
           mode: 'solution',
         });
       });
-      renderApp(false);
+      renderApp();
       return;
     }
     if (act === 'generate-quiz') {
       const topicId = btn.getAttribute('data-topic-id');
       const topic = state.lessonTopics.find((tp) => tp.id === topicId) || state.lessonTopics[0];
+      if (!topic) return;
       store.mutate((s) => {
         s.ui.activePracticeQuiz = aiTutorApi.buildPracticeQuiz(topic);
+        s.ui.quizAnswers = {};
       });
-      showToast('Đã tạo bộ 5 câu tự luyện theo bài trên lớp!');
-      renderApp(false);
+      showToast('Đã tạo 5 câu tự luyện theo bài trên lớp.');
+      renderApp();
+      return;
+    }
+    if (act === 'answer-quiz') {
+      const qIdx = Number(btn.getAttribute('data-q-index'));
+      const optIdx = Number(btn.getAttribute('data-opt-index'));
+      store.mutate((s) => {
+        s.ui.quizAnswers = s.ui.quizAnswers || {};
+        s.ui.quizAnswers[qIdx] = optIdx;
+      });
+      renderApp();
       return;
     }
     if (act === 'confirm-donation-match') {
@@ -799,8 +733,8 @@
         if (off) off.status = 'matched';
         if (req) req.status = 'fulfilled';
       });
-      showToast('Đã xác nhận trao tận tay món đồ cho học sinh.');
-      renderApp(false);
+      showToast('Đã xác nhận trao đồ tận tay cho học sinh.');
+      renderApp();
       return;
     }
     if (act === 'toggle-save-scholarship') {
@@ -810,8 +744,8 @@
         if (i >= 0) s.savedScholarshipIds.splice(i, 1);
         else s.savedScholarshipIds.push(id);
       });
-      showToast('Đã cập nhật danh sách nhắc hạn học bổng.');
-      renderApp(false);
+      showToast('Đã cập nhật nhắc hạn nộp hồ sơ học bổng.');
+      renderApp();
       return;
     }
     if (act === 'approve-culture') {
@@ -820,8 +754,8 @@
         const post = s.culturePosts.find((c) => c.id === id);
         if (post) post.approved = true;
       });
-      showToast('Đã duyệt đăng câu chuyện văn hóa lên bảng tin trường.');
-      renderApp(false);
+      showToast('Đã duyệt đăng bài viết lên Kho văn hóa.');
+      renderApp();
       return;
     }
     if (act === 'print-a4') {
@@ -851,59 +785,15 @@
       void handleFormSubmit(form, e.submitter);
     });
 
-    document.addEventListener('change', (e) => {
-      const sel = e.target.closest('[data-change="trial-role"]');
-      if (!sel) return;
-      store.switchTrialRole(sel.value);
-      navigateTo('/');
-      const label = landing.TRIAL_ROLES.find((r) => r.role === sel.value)?.title || sel.value;
-      showToast(`Đã chuyển sang vai ${label}.`);
+    document.addEventListener('input', (e) => {
+      const range = e.target.closest('[data-range-output]');
+      if (!range) return;
+      const code = range.getAttribute('data-range-output');
+      const badge = document.querySelector(`[data-range-value="${code}"]`);
+      if (badge) badge.textContent = `${range.value}/25`;
     });
 
-    // Vệt sáng theo con trỏ trên thẻ (chỉ thiết bị có chuột, gom theo khung hình)
-    if (global.matchMedia?.('(hover: hover) and (pointer: fine)').matches && !REDUCED_MOTION) {
-      let spotTarget = null;
-      let spotX = 0;
-      let spotY = 0;
-      let spotQueued = false;
-      document.addEventListener(
-        'pointermove',
-        (e) => {
-          const el = e.target.closest?.('.card-interactive, .spot');
-          if (!el) return;
-          spotTarget = el;
-          spotX = e.clientX;
-          spotY = e.clientY;
-          if (spotQueued) return;
-          spotQueued = true;
-          global.requestAnimationFrame(() => {
-            spotQueued = false;
-            if (!spotTarget) return;
-            const r = spotTarget.getBoundingClientRect();
-            spotTarget.style.setProperty('--mx', `${spotX - r.left}px`);
-            spotTarget.style.setProperty('--my', `${spotY - r.top}px`);
-          });
-        },
-        { passive: true },
-      );
-    }
-
-    // Đổ bóng header khi cuộn + parallax rất nhẹ cho dãy núi
-    let scrollQueued = false;
-    global.addEventListener(
-      'scroll',
-      () => {
-        if (scrollQueued) return;
-        scrollQueued = true;
-        global.requestAnimationFrame(() => {
-          scrollQueued = false;
-          syncScrollState();
-        });
-      },
-      { passive: true },
-    );
-
-    // GPU-composited 2-second SOS Hold Guard (`transform: scaleX(...)` only, zero layout reflow)
+    // Nút giữ SOS 2 giây
     let holdTimer = null;
     let holdRaf = null;
     let holdStart = 0;
@@ -941,13 +831,13 @@
           const sosId = store.helpers.uid('sos');
           s.sosAlerts.unshift({
             id: sosId,
-            studentId: store.getCurrentUser()?.id || 'stu-01',
-            time: '21:10',
+            studentId: store.getCurrentUser()?.id || '',
+            time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
           });
           store.enqueueOp('sos.trigger', { id: sosId });
         });
-        showToast('ĐÃ PHÁT TÍN HIỆU SOS KHẨN CẤP! Thầy cô Quản sinh & Y tế đã nhận báo động.');
-        renderApp(false);
+        showToast('Đã phát tín hiệu SOS khẩn cấp tới Quản sinh và Phòng Y tế.');
+        renderApp();
       }, duration);
 
       const stop = () => {
@@ -959,42 +849,37 @@
       global.addEventListener('pointercancel', stop, { once: true });
     });
 
-    global.addEventListener('popstate', () => renderApp(true));
-    global.addEventListener('hashchange', () => renderApp(true));
+    global.addEventListener('popstate', () => renderApp());
+    global.addEventListener('hashchange', () => renderApp());
     global.addEventListener('online', () => {
       store.mutate((s) => {
         s.online = true;
       });
       void store.flushOutbox();
-      renderApp(false);
+      renderApp();
     });
     global.addEventListener('offline', () => {
       store.mutate((s) => {
         s.online = false;
       });
-      renderApp(false);
+      renderApp();
     });
-  }
 
-  function syncScrollState() {
-    const y = global.scrollY || 0;
-    document.querySelectorAll('[data-scroll-header]').forEach((h) => {
-      h.setAttribute('data-scrolled', y > 8 ? 'true' : 'false');
-    });
-    if (!REDUCED_MOTION) {
-      document.documentElement.style.setProperty('--sy', String(Math.min(y, 1200)));
-    }
-    const header = document.querySelector('.app-header');
-    if (header) {
-      document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
+    if (typeof store.onSessionExpired === 'function') {
+      store.onSessionExpired(() => {
+        authError = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+        navigateTo('/dang-nhap');
+      });
     }
   }
 
   async function start() {
-    document.documentElement.classList.add('js-ready');
     await store.hydrateFromIdb();
     bindGlobalEvents();
-    renderApp(false);
+    renderApp();
+    if (store.getCurrentUser() && store.getState().online) {
+      void store.flushOutbox();
+    }
     if (!IS_FILE && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => undefined);
     }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bannha-pure-html-v8';
+const CACHE_NAME = 'bannha-pure-html-v10';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -27,7 +27,6 @@ const SHELL_ASSETS = [
   './js/views/modules-life.js',
   './js/views/modules-study-health.js',
   './js/views/modules-community-admin.js',
-  './js/views/styleguide.js',
   './js/app.js',
 ];
 

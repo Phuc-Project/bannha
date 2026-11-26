@@ -1,174 +1,156 @@
 /**
- * BẢN NHÀ — Trang giới thiệu & cổng Dùng thử (không cần đăng nhập)
- * Mục tiêu duy nhất của trang: đưa người xem vào sản phẩm thật nhanh nhất.
+ * BẢN NHÀ — Trang giới thiệu ứng dụng hỗ trợ học sinh dân tộc nội trú
  */
 (function initLanding(global) {
-  const { esc, makeQrToken } = global.BanNha.utils;
-  const { icon, tribalStripe, ridge } = global.BanNha.icons;
+  const { esc } = global.BanNha.utils;
+  const { icon } = global.BanNha.icons;
   const { CONFIG } = global.BanNha;
 
-  const TRIAL_ROLES = [
+  const ROLES = [
     {
       role: 'student',
       title: 'Học sinh nội trú',
-      desc: 'Thẻ QR điểm danh, báo cắt suất ăn, hỏi Gia sư AI buổi tối, nút SOS giữ 2 giây.',
+      desc: 'Xem thẻ QR điểm danh, thực đơn tuần, báo cắt suất ăn, hỏi Gia sư buổi tối và gửi báo ốm hoặc SOS.',
       icon: 'tutor',
-      tone: 'tone-forest',
-      toneVar: 'var(--color-forest-700)',
+      tone: 'tone-brand',
     },
     {
       role: 'parent',
       title: 'Phụ huynh ở bản',
-      desc: 'Xem "Hôm nay của con" bằng chữ lớn: điểm danh, điểm số, sức khỏe, lịch về nhà.',
+      desc: 'Giao diện chữ lớn dễ đọc: theo dõi điểm danh hằng ngày, kết quả học tập, sức khỏe và xin phép cho con.',
       icon: 'home',
-      tone: 'icon-box-star',
-      toneVar: 'var(--color-turmeric)',
+      tone: 'tone-amber',
     },
     {
       role: 'teacher',
       title: 'Giáo viên chủ nhiệm',
-      desc: 'Nhập điểm nhanh, gửi thông báo tới phụ huynh, duyệt bài Kho văn hóa của lớp.',
+      desc: 'Cập nhật điểm môn học, gửi thông báo về bản cho phụ huynh và duyệt bài viết Kho văn hóa.',
       icon: 'contact',
-      tone: 'tone-indigo',
-      toneVar: 'var(--color-indigo-700)',
+      tone: 'tone-sky',
     },
     {
       role: 'dorm_staff',
       title: 'Quản sinh ký túc xá',
-      desc: 'Quét thẻ QR cả khi mất sóng, duyệt đơn về bản — bếp tự cắt suất theo đơn.',
+      desc: 'Điểm danh phòng bằng mã QR khi không có mạng, duyệt đơn xin về bản và theo dõi sửa chữa phòng.',
       icon: 'dorm',
-      tone: 'tone-forest',
-      toneVar: 'var(--color-forest-500)',
+      tone: 'tone-teal',
     },
     {
       role: 'medical_staff',
       title: 'Nhân viên y tế',
-      desc: 'Nhận báo ốm từ phòng ở, theo dõi chiều cao – cân nặng, xử lý tín hiệu SOS.',
+      desc: 'Tiếp nhận báo ốm từ phòng ở, theo dõi chiều cao cân nặng định kỳ và nhận tín hiệu SOS khẩn cấp.',
       icon: 'health',
       tone: 'tone-rose',
-      toneVar: 'var(--color-rose-700)',
     },
     {
       role: 'kitchen_staff',
-      title: 'Nhà bếp',
-      desc: 'Bảng suất nấu từng bữa đã trừ học sinh nghỉ, đọc góp ý món ăn quê.',
+      title: 'Cán bộ nhà bếp',
+      desc: 'Xem bảng quân số nấu ăn từng bữa đã tự động trừ học sinh nghỉ, đọc góp ý món ăn của học sinh.',
       icon: 'kitchen',
-      tone: 'tone-clay',
-      toneVar: 'var(--color-clay-600)',
+      tone: 'tone-amber',
     },
     {
       role: 'admin',
       title: 'Quản trị nhà trường',
-      desc: 'Nhập danh sách CSV có kiểm tra thử, in thẻ QR học sinh khổ A4 (8 thẻ/trang).',
+      desc: 'Quản lý danh bạ tài khoản đầu năm học từ tệp CSV và in thẻ QR nội trú chuẩn khổ giấy A4.',
       icon: 'admin',
       tone: 'tone-ink',
-      toneVar: 'var(--color-ink)',
     },
   ];
 
-  const MODULES = [
+  const LIFE_MODULES = [
     {
-      path: '/contact',
-      title: '★ Sổ liên lạc Bản – Trường',
-      desc: 'Phụ huynh xem điểm danh, kết quả học tập, lịch về nhà của con và nhận thông báo ngay trên app.',
-      icon: 'contact',
-      star: true,
-      span: true,
-    },
-    {
-      path: '/dorm',
       title: 'Ký túc xá số',
-      desc: 'Điểm danh bằng mã QR, xin phép về bản online, báo hỏng đồ trong phòng.',
+      desc: 'Điểm danh bằng mã QR, gửi đơn xin phép về bản và báo hỏng đồ đạc trong phòng ở.',
       icon: 'dorm',
-      tone: 'tone-forest',
+      tone: 'tone-brand',
     },
     {
-      path: '/kitchen',
       title: 'Bếp ăn minh bạch',
-      desc: 'Thực đơn cả tuần, báo cắt suất khi về nhà, góp ý món ăn cho nhà bếp.',
+      desc: 'Thực đơn cả tuần rõ ràng, báo cắt suất ăn khi về nhà và góp ý món ăn cho nhà bếp.',
       icon: 'kitchen',
-      tone: 'tone-clay',
+      tone: 'tone-amber',
     },
     {
-      path: '/health',
-      title: 'Y tế học đường',
-      desc: 'Báo ốm, theo dõi sức khỏe, nhắc lịch khám; nút SOS gọi quản sinh và y tế.',
+      title: 'Y tế & Khẩn cấp SOS',
+      desc: 'Báo ốm tại phòng, theo dõi sức khỏe định kỳ và nút giữ SOS 2 giây khi khẩn cấp ban đêm.',
       icon: 'health',
       tone: 'tone-rose',
     },
     {
-      path: '/donations',
       title: 'Ngân hàng đồ cũ',
-      desc: 'Luân chuyển sách giáo khoa, đồng phục, áo ấm mùa đông; gợi ý ghép cho – nhận.',
+      desc: 'Chia sẻ sách giáo khoa, đồng phục, áo ấm mùa đông ẩn danh và giữ kín cho người nhận.',
       icon: 'donations',
-      tone: 'tone-forest',
-    },
-    {
-      path: '/tutor',
-      title: '★ Gia sư AI buổi tối',
-      desc: 'Hỏi bài khi tự học, giải thích từng bước, tự ôn theo bài trên lớp.',
-      icon: 'tutor',
-      star: true,
-      span: true,
-    },
-    {
-      path: '/culture',
-      title: '★ Kho văn hóa Bản tôi',
-      desc: 'Học sinh giới thiệu trang phục, lễ hội, món ăn, phong tục của dân tộc mình.',
-      icon: 'culture',
-      star: true,
-      span: true,
-    },
-    {
-      path: '/scholarships',
-      title: 'Học bổng & hướng nghiệp',
-      desc: 'Tổng hợp học bổng, chính sách cử tuyển, nhắc hạn nộp hồ sơ, trắc nghiệm nghề.',
-      icon: 'scholarships',
-      tone: 'tone-indigo',
-      span: true,
+      tone: 'tone-teal',
     },
   ];
 
-  const check = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>`;
+  const STUDY_MODULES = [
+    {
+      title: 'Sổ liên lạc Bản – Trường',
+      desc: 'Phụ huynh xem điểm danh, điểm học kỳ và thông báo trực tiếp từ giáo viên chủ nhiệm.',
+      icon: 'contact',
+      tone: 'tone-sky',
+    },
+    {
+      title: 'Gia sư buổi tối',
+      desc: 'Hỗ trợ tự học bằng câu hỏi gợi mở từng bước và bộ câu hỏi ôn tập theo bài trên lớp.',
+      icon: 'tutor',
+      tone: 'tone-brand',
+    },
+    {
+      title: 'Học bổng & Hướng nghiệp',
+      desc: 'Tổng hợp học bổng, chính sách cử tuyển, nhắc hạn nộp hồ sơ và khảo sát nhóm ngành nghề.',
+      icon: 'scholarships',
+      tone: 'tone-sky',
+    },
+    {
+      title: 'Kho văn hóa Bản tôi',
+      desc: 'Không gian để học sinh giới thiệu trang phục, món ăn và lễ hội truyền thống dân tộc mình.',
+      icon: 'culture',
+      tone: 'tone-amber',
+    },
+  ];
 
   function renderPreview() {
-    const qrToken = makeQrToken(CONFIG.schoolId, 'HS10A02', 1);
     const items = [
-      ['Điểm danh ký túc xá 20:30', 'Phòng A201 · quét thẻ QR khi mất sóng'],
-      ['Báo cắt bữa tối Thứ Bảy', 'Về bản cùng gia đình · bếp đã nhận'],
-      ['Hỏi Gia sư: đỉnh Parabol', 'Gợi ý bước 2 đã mở · còn 28 lượt'],
-      ['Khám răng định kỳ 14:00', 'Phòng Y tế · Thứ Bảy'],
+      ['Điểm danh phòng A201 lúc 20:30', 'Quét mã QR, dùng được cả khi không có sóng'],
+      ['Bữa tối: Gà đồi kho sả ớt, canh bí đỏ', 'Hạn báo cắt suất ăn trước 15:30'],
+      ['Tự học Toán 10: Hàm số bậc hai', 'Gia sư gợi ý từng bước và 5 câu tự luyện'],
+      ['Lịch khám răng định kỳ', '14:00 Thứ Bảy tại Phòng Y tế trường'],
     ];
-    return `
-      <div class="hero-stage" aria-hidden="true">
-        <div class="preview-card spot">
-          <div class="preview-top">
-            <span>BẢN NHÀ · Học sinh</span>
-            <span class="preview-sync"><i></i><b class="ps-off">Ngoại tuyến · 2 chờ gửi</b><b class="ps-on">Đã đồng bộ</b></span>
-          </div>
-          <div class="preview-body">
-            <p class="preview-greet">Thứ Năm, 26/11<strong>Việc hôm nay của em</strong></p>
-            <ol class="preview-list">
-              ${items
-                .map(
-                  ([t, s], i) => `
-                <li style="--i:${i}">
-                  <span class="pv-check">${check}</span>
-                  <div><strong>${esc(t)}</strong><small>${esc(s)}</small></div>
-                </li>`,
-                )
-                .join('')}
-            </ol>
-          </div>
-        </div>
 
-        <div class="preview-float pf-a">
-          <span class="icon-box icon-box-star" style="width:2.2rem;height:2.2rem">${icon('home', 18)}</span>
-          <div><strong>Tin cho phụ huynh</strong><span>Con đã điểm danh lúc 20:42</span></div>
+    return `
+      <div class="preview-frame" aria-hidden="true">
+        <div class="preview-top">
+          <span>BẢN NHÀ · Học sinh</span>
+          <span class="preview-status"><i></i>Đang trực tuyến</span>
         </div>
-        <div class="preview-float pf-b">
-          <div class="qr-mini" data-qr="${esc(qrToken)}"></div>
-          <div><strong>Thẻ nội trú</strong><span>Ký số, kiểm tra không cần mạng</span></div>
+        <div class="preview-body">
+          <div class="preview-student">
+            <div>
+              <strong>Lịch sinh hoạt nội trú</strong>
+              <span>${esc(CONFIG.schoolName)}</span>
+            </div>
+            <span class="chip">Hôm nay</span>
+          </div>
+          <ol class="preview-list">
+            ${items
+              .map(
+                ([title, sub]) => `
+              <li>
+                <span class="pv-check">${icon('check', 12)}</span>
+                <div>
+                  <strong>${esc(title)}</strong>
+                  <small>${esc(sub)}</small>
+                </div>
+              </li>`,
+              )
+              .join('')}
+          </ol>
+        </div>
+        <div class="preview-foot">
+          <span>Phụ huynh ở bản nắm tình hình của con ngay khi đồng bộ.</span>
         </div>
       </div>`;
   }
@@ -176,21 +158,25 @@
   function renderLandingView() {
     return `
       <div class="landing">
-        ${tribalStripe()}
-        <header class="landing-nav" data-scroll-header>
+        <header class="landing-nav">
           <div class="l-container landing-nav-inner">
             <button type="button" class="landing-brand" data-action="scroll-to" data-target="top">
-              <span class="brand-mark">${icon('home', 19)}</span>
-              <span><strong>BẢN NHÀ</strong><small>Hỗ trợ học sinh dân tộc nội trú</small></span>
+              <span class="brand-mark">${icon('home', 18)}</span>
+              <span>
+                <strong>BẢN NHÀ</strong>
+                <small>Đồng hành học sinh dân tộc nội trú</small>
+              </span>
             </button>
-            <nav class="landing-links" aria-label="Mục trên trang">
-              <button type="button" data-action="scroll-to" data-target="thu-vai-tro">Dùng thử</button>
-              <button type="button" data-action="scroll-to" data-target="chuc-nang">8 chức năng</button>
-              <button type="button" data-action="scroll-to" data-target="cach-dung">Cách dùng</button>
+
+            <nav class="landing-links" aria-label="Điều hướng trang giới thiệu">
+              <button type="button" data-action="scroll-to" data-target="chuc-nang">Tính năng</button>
+              <button type="button" data-action="scroll-to" data-target="vai-tro">Vai trò sử dụng</button>
+              <button type="button" data-action="scroll-to" data-target="cach-dung">Cách hoạt động</button>
             </nav>
+
             <div class="landing-nav-actions">
-              <button type="button" class="btn btn-ghost btn-sm" data-nav="/dang-nhap">${icon('login', 16)} Đăng nhập</button>
-              <button type="button" class="btn btn-primary btn-sm" data-action="start-trial" data-role="student">Dùng thử</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-nav="/dang-nhap">Đăng nhập</button>
+              <button type="button" class="btn btn-primary btn-sm" data-nav="/dang-ky">Đăng ký</button>
             </div>
           </div>
         </header>
@@ -198,150 +184,151 @@
         <main id="top">
           <section class="hero">
             <div class="l-container hero-grid">
-              <div class="hero-copy">
-                <p class="hero-kicker">Dành cho trường Phổ thông Dân tộc Nội trú vùng cao</p>
-                <h1 class="hero-title">Xa bản,<br /><em>vẫn có nhà.</em></h1>
+              <div>
+                <span class="hero-badge">Dành cho trường Phổ thông Dân tộc Nội trú</span>
+                <h1 class="hero-title">Xa bản, vẫn có nhà.</h1>
                 <p class="hero-lead">
-                  Một ứng dụng cho mọi việc của đời sống nội trú — điểm danh, bữa ăn, sổ liên lạc với bản, gia sư buổi tối. Vẫn dùng được khi mất sóng, chạy mượt trên điện thoại cấu hình thấp.
+                  Một ứng dụng gọn nhẹ cho mọi việc của đời sống nội trú: điểm danh ký túc xá, bữa ăn hằng ngày, sổ liên lạc về bản và tự học buổi tối. Gọn nhẹ, phù hợp điện thoại cấu hình thấp.
                 </p>
                 <div class="hero-cta">
-                  <button type="button" class="btn btn-primary btn-lg" data-action="start-trial" data-role="student">
-                    ${icon('play', 18)} Dùng thử ngay — không cần tài khoản
+                  <button type="button" class="btn btn-primary btn-lg" data-nav="/dang-ky">
+                    ${icon('login', 17)} Đăng ký tài khoản
                   </button>
-                  <button type="button" class="btn btn-secondary btn-lg" data-action="scroll-to" data-target="thu-vai-tro">
-                    Chọn vai trò khác <span class="btn-arrow">${icon('arrow', 18)}</span>
+                  <button type="button" class="btn btn-secondary btn-lg" data-nav="/dang-nhap">
+                    Đăng nhập
                   </button>
                 </div>
                 <ul class="hero-facts">
-                  <li>${icon('offline', 18)} Dùng được khi mất mạng</li>
-                  <li>${icon('key', 18)} Một tài khoản cho cả trường</li>
-                  <li>${icon('device', 18)} Nhẹ, chạy máy cấu hình thấp</li>
+                  <li>${icon('offline', 17)} Dữ liệu lưu trên máy chủ của trường</li>
+                  <li>${icon('key', 17)} Tài khoản do nhà trường cấp</li>
+                  <li>${icon('device', 17)} Chữ lớn dễ đọc cho phụ huynh</li>
                 </ul>
-                <p class="hero-note">Bản dùng thử chạy bằng dữ liệu mẫu của một trường giả định · không lưu lại sau khi thoát.</p>
               </div>
               ${renderPreview()}
             </div>
-            ${ridge('#E3ECE6', '#F3EDE0')}
           </section>
 
-          <section class="l-section reveal" style="padding-top:2.5rem">
+          <section id="chuc-nang" class="l-section">
             <div class="l-container">
               <div class="section-head">
-                <h2>Học sinh nội trú đang gặp gì?</h2>
+                <h2>Tất cả việc nội trú trong một nơi</h2>
+                <p>Các chức năng được sắp xếp theo đúng sinh hoạt và học tập hằng ngày của học sinh, phụ huynh và thầy cô.</p>
               </div>
-              <div class="pains-grid">
-                <article class="pain reveal" style="--stagger:1">
-                  <span class="pain-num">01</span>
-                  <h3>Xa gia đình</h3>
-                  <p>Ở trường cả tuần, phụ huynh ở bản ít nắm được tình hình học tập, sinh hoạt của con.</p>
-                </article>
-                <article class="pain reveal" style="--stagger:2">
-                  <span class="pain-num">02</span>
-                  <h3>Thiếu điều kiện</h3>
-                  <p>Nhiều em khó khăn, thiếu sách vở, đồng phục, áo ấm; tự học buổi tối không có người hỏi bài.</p>
-                </article>
-                <article class="pain reveal" style="--stagger:3">
-                  <span class="pain-num">03</span>
-                  <h3>Quản lý thủ công</h3>
-                  <p>Điểm danh, xin phép, báo cắt suất ăn vẫn làm bằng sổ sách, giấy tờ.</p>
-                </article>
+
+              <div class="module-cluster">
+                <div>
+                  <p class="cluster-label">Đời sống nội trú hằng ngày</p>
+                  <div class="modules-grid">
+                    ${LIFE_MODULES.map(
+                      (m) => `
+                      <article class="card stack-md">
+                        <span class="icon-box ${m.tone}">${icon(m.icon, 20)}</span>
+                        <div class="stack-sm">
+                          <h3>${esc(m.title)}</h3>
+                          <p class="text-muted">${esc(m.desc)}</p>
+                        </div>
+                      </article>`,
+                    ).join('')}
+                  </div>
+                </div>
+
+                <div>
+                  <p class="cluster-label">Học tập, hướng nghiệp và kết nối gia đình</p>
+                  <div class="modules-grid">
+                    ${STUDY_MODULES.map(
+                      (m) => `
+                      <article class="card stack-md">
+                        <span class="icon-box ${m.tone}">${icon(m.icon, 20)}</span>
+                        <div class="stack-sm">
+                          <h3>${esc(m.title)}</h3>
+                          <p class="text-muted">${esc(m.desc)}</p>
+                        </div>
+                      </article>`,
+                    ).join('')}
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
-          <section id="thu-vai-tro" class="l-section reveal">
+          <section id="vai-tro" class="l-section l-section-alt">
             <div class="l-container">
               <div class="section-head">
-                <h2>Thử ngay bằng vai trò của bạn</h2>
-                <p>Mỗi vai trò mở đúng màn hình người đó dùng hằng ngày. Không cần mã, không cần mật khẩu — bấm là vào.</p>
+                <h2>Thiết kế riêng cho từng vai trò trong trường</h2>
+                <p>Mỗi nhóm người dùng có giao diện tối giản đúng theo công việc hằng ngày, dễ thao tác ngay từ lần đầu sử dụng.</p>
               </div>
-              <div class="roles-wrap">
-                <ol class="role-list">
-                  ${TRIAL_ROLES.map(
-                    (r, i) => `
-                    <li>
-                      <button type="button" class="role-row" style="--tone:${r.toneVar}" data-action="start-trial" data-role="${r.role}">
-                        <span class="role-num">${String(i + 1).padStart(2, '0')}</span>
-                        <span class="icon-box ${r.tone}">${icon(r.icon, 21)}</span>
-                        <span class="role-body"><strong>${esc(r.title)}</strong><span>${esc(r.desc)}</span></span>
-                        <span class="role-go"><span class="role-go-label">Thử vai này</span><span class="btn-arrow">${icon('arrow', 18)}</span></span>
-                      </button>
-                    </li>`,
-                  ).join('')}
-                </ol>
-              </div>
-            </div>
-          </section>
-
-          <section id="chuc-nang" class="l-section reveal">
-            <div class="l-container">
-              <div class="section-head">
-                <h2>8 chức năng trong một ứng dụng</h2>
-                <span class="chip chip-star">★ điểm mới nổi bật</span>
-              </div>
-              <div class="bento">
-                ${MODULES.map(
-                  (m, i) => `
-                  <button
-                    type="button"
-                    class="card card-interactive bento-tile ${m.star ? 'card-star' : ''} ${m.span ? 'span-2' : ''} reveal"
-                    style="--stagger:${i % 4}"
-                    data-action="start-trial"
-                    data-role="student"
-                    data-goto="${m.path}"
-                  >
-                    <span class="icon-box ${m.star ? 'icon-box-star' : m.tone}">${icon(m.icon, 22)}</span>
-                    <span class="stack-sm">
-                      <h3>${esc(m.title)}</h3>
-                      <span class="text-muted">${esc(m.desc)}</span>
-                    </span>
-                    <span class="bento-try">Mở thử <span class="btn-arrow">${icon('arrow', 16)}</span></span>
-                  </button>`,
+              <div class="role-grid">
+                ${ROLES.map(
+                  (r) => `
+                  <article class="role-card" style="cursor:default">
+                    <div class="stack-sm">
+                      <span class="icon-box ${r.tone}">${icon(r.icon, 20)}</span>
+                      <h3>${esc(r.title)}</h3>
+                      <p>${esc(r.desc)}</p>
+                    </div>
+                  </article>`,
                 ).join('')}
               </div>
             </div>
           </section>
 
-          <section id="cach-dung" class="l-section reveal">
-            <div class="l-container">
-              <div class="section-head">
-                <h2>Cách dùng</h2>
-                <p>Trường cấp sẵn tài khoản cho từng người — không cần email hay số điện thoại.</p>
+          <section id="cach-dung" class="l-section">
+            <div class="l-container stack-lg">
+              <div class="section-head" style="margin-bottom:0">
+                <h2>Cách nhà trường và học sinh sử dụng</h2>
+                <p>Không yêu cầu học sinh hay phụ huynh tạo email cá nhân, dễ triển khai ngay đầu năm học.</p>
               </div>
-              <ol class="steps-list">
-                <li class="step reveal" style="--stagger:0"><strong>Đăng nhập</strong><span>Bằng mã tài khoản trường cấp, đổi mật khẩu ở lần đầu.</span></li>
-                <li class="step reveal" style="--stagger:1"><strong>Chọn vai trò</strong><span>Học sinh, giáo viên, phụ huynh — mỗi người một màn hình riêng.</span></li>
-                <li class="step reveal" style="--stagger:2"><strong>Dùng mọi chức năng</strong><span>Kể cả khi mất mạng: mọi thao tác được lưu ngay trên máy.</span></li>
-                <li class="step reveal" style="--stagger:3"><strong>Tự đồng bộ khi có sóng</strong><span>Đơn từ, điểm danh tự gửi lên trường, không mất dữ liệu.</span></li>
-              </ol>
-            </div>
-          </section>
 
-          <section class="l-section reveal" style="padding-top:1rem">
-            <div class="l-container">
+              <ol class="steps-grid">
+                <li class="step-card">
+                  <span class="step-num">1</span>
+                  <strong>Đăng ký tài khoản</strong>
+                  <span>Học sinh, phụ huynh tự tạo tài khoản; thầy cô và nhân viên dùng tài khoản trường cấp.</span>
+                </li>
+                <li class="step-card">
+                  <span class="step-num">2</span>
+                  <strong>Đăng nhập</strong>
+                  <span>Dùng tên đăng nhập và mật khẩu của bạn trên bất kỳ điện thoại nào.</span>
+                </li>
+                <li class="step-card">
+                  <span class="step-num">3</span>
+                  <strong>Sử dụng hằng ngày</strong>
+                  <span>Điểm danh, xem thực đơn, báo cắt suất ăn, xem điểm và hỏi bài ngay trên điện thoại.</span>
+                </li>
+                <li class="step-card">
+                  <span class="step-num">4</span>
+                  <strong>Dữ liệu luôn được cập nhật</strong>
+                  <span>Mọi thao tác được gửi thẳng lên máy chủ; đổi điện thoại vẫn giữ nguyên dữ liệu.</span>
+                </li>
+              </ol>
+
               <div class="cta-band">
-                <h2>Mở thử trong <em>một chạm.</em></h2>
-                <p>Bắt đầu với vai học sinh, đổi sang phụ huynh hay quản sinh bất cứ lúc nào ngay trên thanh dùng thử.</p>
-                <div class="hero-cta">
-                  <button type="button" class="btn btn-accent btn-lg" data-action="start-trial" data-role="student">${icon('play', 18)} Dùng thử ngay</button>
-                  <button type="button" class="btn btn-secondary btn-lg" data-nav="/dang-nhap">Tôi có tài khoản trường cấp</button>
+                <div>
+                  <h2>Bắt đầu trong một phút</h2>
+                  <p>Học sinh và phụ huynh tự đăng ký; thầy cô và nhân viên đăng nhập bằng tài khoản nhà trường cấp.</p>
                 </div>
-                ${ridge('#1E5A47', '#1A4D3E')}
+                <div class="cta-band-actions">
+                  <button type="button" class="btn btn-on-dark btn-lg" data-nav="/dang-ky">
+                    Đăng ký ngay
+                  </button>
+                  <button type="button" class="btn btn-on-dark btn-lg" data-nav="/dang-nhap">
+                    Đăng nhập
+                  </button>
+                </div>
               </div>
             </div>
           </section>
         </main>
 
         <footer class="app-footer">
-          ${tribalStripe()}
           <div class="footer-inner">
-            <span><strong>BẢN NHÀ</strong> — Xa bản, vẫn có nhà.</span>
-            <button type="button" class="btn btn-ghost btn-sm" data-nav="/dev/ui">Hệ thống thiết kế</button>
+            <span><strong>BẢN NHÀ</strong> — ${esc(CONFIG.schoolName)}</span>
+            <span>Ứng dụng hỗ trợ học sinh dân tộc nội trú.</span>
           </div>
         </footer>
       </div>`;
   }
 
   global.BanNha = global.BanNha || {};
-  global.BanNha.landing = { renderLandingView, TRIAL_ROLES };
+  global.BanNha.landing = { renderLandingView, TRIAL_ROLES: ROLES };
 })(window);

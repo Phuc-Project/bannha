@@ -1,12 +1,10 @@
 /* ==========================================================================
-   BẢN NHÀ — Design Tokens
-   Theo tinh thần Hallmark (Editorial · Warm Craft) & Impeccable (colorize/typeset):
-   - Giấy ấm, mực xanh rừng, đất nung, vàng nghệ, chàm Mông làm điểm nhấn văn hóa.
-   - Không dùng đen/trắng thuần: mọi trung tính đều pha sắc ấm.
-   - Hex là nền tảng (đã đo tương phản WCAG AA); OKLCH dùng để pha các sắc độ dẫn xuất.
+   BẢN NHÀ — Hệ thống biến thiết kế (Design Tokens)
+   Thẩm mỹ: Sạch sẽ, khoa học, thân thiện giáo dục hiện đại.
+   - Đồng nhất 100% font Be Vietnam Pro (tối ưu dấu tiếng Việt, tự host).
+   - Bảng màu sáng sạch độ tương phản cao WCAG AA/AAA, dịu mắt khi dùng ban đêm.
    ========================================================================== */
 
-/* Font Be Vietnam Pro tự host — tách đúng 2 bộ ký tự bằng unicode-range */
 @font-face {
   font-family: 'Be Vietnam Pro';
   font-style: normal;
@@ -89,108 +87,93 @@
 }
 
 :root {
-  /* Xanh rừng — màu thương hiệu, nút chính, header */
-  --color-forest-950: #0f2e25;
-  --color-forest-900: #163f33;
-  --color-forest-800: #1a4d3e;
-  --color-forest-700: #1e5a47;
-  --color-forest-600: #256b55;
-  --color-forest-500: #3f8a6f;
-  --color-forest-100: #d5e5dd;
-  --color-forest-50: #e8f0ec;
+  /* Xanh rừng thông — màu chủ đạo giáo dục tin cậy */
+  --color-brand-950: #0c3325;
+  --color-brand-900: #114432;
+  --color-brand-800: #14533c;
+  --color-brand-700: #18664a;
+  --color-brand-600: #1f7a59;
+  --color-brand-100: #d6ede4;
+  --color-brand-50: #edf7f3;
 
-  /* Giấy ấm — nền ứng dụng (không trắng thuần) */
-  --color-cream: #faf6ee;
-  --color-cream-sunken: #f3ede0;
-  --color-surface: #fffdf8;
-  --color-line: #e7e0d2;
-  --color-line-strong: #d3c8b4;
+  /* Trung tính sáng sạch (không vàng đục, không xám lạnh chói) */
+  --color-canvas: #f4f7f5;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8faf9;
+  --color-line: #e2e8e5;
+  --color-line-strong: #cbd5d0;
 
-  /* Đất nung — tiêu đề phân mục, điểm nhấn ấm */
-  --color-clay-700: #9a3615;
-  --color-clay-600: #b8431e;
-  --color-clay-100: #f6dccf;
-  --color-clay-50: #fbeee9;
+  /* Chữ đọc sắc nét (WCAG AAA cho chữ chính, AA cho chữ phụ) */
+  --color-ink: #13201b;
+  --color-ink-soft: #2e3f38;
+  --color-muted: #55665e;
 
-  /* Vàng nghệ — viền 3 chức năng ★ (cấm làm chữ trên nền sáng) */
-  --color-turmeric: #e3b23c;
-  --color-turmeric-100: #f7e6b8;
-  --color-turmeric-50: #fdf6e3;
+  /* Màu ngữ nghĩa chừng mực */
+  --color-amber-700: #9a5b08;
+  --color-amber-500: #d97706;
+  --color-amber-100: #fdecc8;
+  --color-amber-50: #fffbeb;
 
-  /* Chàm — màu vải nhuộm của người Mông, Dao: điểm nhấn văn hóa & học tập */
-  --color-indigo-700: #2f3f7a;
-  --color-indigo-100: #d9ddf0;
-  --color-indigo-50: #eef0f9;
+  --color-sky-700: #1d4ed8;
+  --color-sky-100: #dbeafe;
+  --color-sky-50: #eff6ff;
 
-  /* Hồng đất — y tế (tách khỏi đỏ khẩn cấp SOS) */
-  --color-rose-700: #9e2a40;
-  --color-rose-50: #fbedf0;
+  --color-rose-700: #be123c;
+  --color-rose-100: #ffe4e6;
+  --color-rose-50: #fff1f2;
 
-  --color-ink: #1c2b25;
-  --color-ink-soft: #33443c;
-  --color-muted: #5b6b63;
-  --color-danger: #c62828;
-  --color-danger-50: #fdecec;
-  --color-success: #2e7d4f;
+  --color-teal-700: #0f766e;
+  --color-teal-50: #f0fdfa;
 
-  /* Sắc độ dẫn xuất (fallback hex — được pha lại bằng OKLCH ở khối @supports bên dưới) */
-  --tint-forest-hover: #dbe9e2;
-  --tint-clay-hover: #f8e3d9;
-  --ring: #e3b23c;
-  --shadow-color: 22 63 51;
+  --color-danger: #c81e1e;
+  --color-danger-hover: #a51616;
+  --color-danger-100: #fbd5d5;
+  --color-danger-50: #fdf2f2;
 
-  /* Kiểu chữ */
+  --color-success: #15803d;
+  --color-success-50: #ecfdf3;
+
+  --ring: #18664a;
+  --shadow-color: 15 41 31;
+
+  /* Đồng nhất 1 họ chữ duy nhất — Be Vietnam Pro */
   --font-sans:
     'Be Vietnam Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Noto Serif', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --font-size-body: 1rem;
-  --font-size-sub: 0.875rem;
-  --font-size-micro: 0.78rem;
-  --font-size-section: 1.25rem;
-  --font-size-title: clamp(1.45rem, 1.2rem + 0.8vw, 1.85rem);
-  --font-size-display: clamp(2.4rem, 1.6rem + 3.4vw, 4.4rem);
+  /* Thang cỡ chữ rõ ràng */
+  --font-size-body: 0.95rem;
+  --font-size-sub: 0.85rem;
+  --font-size-micro: 0.76rem;
+  --font-size-h3: 1rem;
+  --font-size-h2: 1.15rem;
+  --font-size-h1: clamp(1.38rem, 1.15rem + 0.7vw, 1.72rem);
+  --font-size-hero: clamp(2rem, 1.45rem + 2.1vw, 3.05rem);
 
-  --control-height: 2.75rem;
-  --radius-card: 14px;
-  --radius-control: 10px;
+  --control-height: 2.65rem;
+  --radius-card: 12px;
+  --radius-control: 9px;
   --radius-pill: 999px;
 
-  /* Nhịp chuyển động (Impeccable: phản hồi 100–150ms, trạng thái 200–300ms, không gian 400–500ms;
-     lối ra luôn nhanh hơn lối vào) */
+  /* Chuyển động chừng mực, mượt mà */
   --dur-instant: 90ms;
-  --dur-fast: 140ms;
-  --dur-base: 240ms;
-  --dur-slow: 460ms;
-  --dur-exit: 160ms;
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
-  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Bóng đổ pha sắc xanh rừng (không dùng bóng đen xám) */
-  --shadow-xs: 0 1px 2px rgb(var(--shadow-color) / 0.06);
-  --shadow-sm: 0 1px 2px rgb(var(--shadow-color) / 0.05), 0 4px 12px -4px rgb(var(--shadow-color) / 0.1);
-  --shadow-md: 0 2px 4px rgb(var(--shadow-color) / 0.04), 0 12px 28px -10px rgb(var(--shadow-color) / 0.2);
-  --shadow-lg: 0 4px 10px rgb(var(--shadow-color) / 0.05), 0 28px 60px -20px rgb(var(--shadow-color) / 0.32);
+  /* Bóng đổ mảnh, nhẹ, không nặng nề */
+  --shadow-xs: 0 1px 2px rgb(var(--shadow-color) / 0.05);
+  --shadow-sm: 0 1px 3px rgb(var(--shadow-color) / 0.06), 0 4px 12px -4px rgb(var(--shadow-color) / 0.06);
+  --shadow-md: 0 4px 16px -4px rgb(var(--shadow-color) / 0.1), 0 2px 6px -2px rgb(var(--shadow-color) / 0.05);
 }
 
-@supports (color: oklch(50% 0.1 160)) {
-  :root {
-    --tint-forest-hover: color-mix(in oklch, var(--color-forest-700) 12%, var(--color-surface));
-    --tint-clay-hover: color-mix(in oklch, var(--color-clay-600) 12%, var(--color-surface));
-    --ring: oklch(80% 0.15 82);
-    --color-surface: oklch(99.4% 0.006 85);
-  }
-}
-
+/* Chế độ Chữ lớn thân thiện cho Phụ huynh */
 html[data-text-size='large'] {
   --font-size-body: 1.125rem;
   --font-size-sub: 1rem;
   --font-size-micro: 0.875rem;
-  --font-size-section: 1.375rem;
-  --font-size-title: 1.85rem;
-  --control-height: 3.25rem;
+  --font-size-h3: 1.15rem;
+  --font-size-h2: 1.32rem;
+  --font-size-h1: 1.85rem;
+  --control-height: 3.1rem;
 }

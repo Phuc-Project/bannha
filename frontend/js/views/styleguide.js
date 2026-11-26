@@ -5,7 +5,6 @@
   const { esc } = global.BanNha.utils;
   const { tribalStripe } = global.BanNha.icons;
   const { CONFIG } = global.BanNha;
-  const { getAuthStatusSummary } = global.BanNha.authAdapter;
 
   const SWATCHES = [
     {
@@ -82,8 +81,8 @@
                 <button type="button" class="btn btn-secondary btn-sm" data-action="toggle-text-size">
                   ${isLarge ? 'Tắt chế độ Chữ lớn (16px)' : 'Bật chế độ Chữ lớn (18px)'}
                 </button>
-                <button type="button" class="btn btn-accent btn-sm" data-action="start-trial" data-role="student">
-                  Dùng thử ngay
+                <button type="button" class="btn btn-accent btn-sm" data-nav="/dang-ky">
+                  Đăng ký ngay
                 </button>
                 <button type="button" class="btn btn-primary btn-sm" data-nav="/">
                   Trang giới thiệu
@@ -95,7 +94,7 @@
               <h2 class="section-title">1. Trạng thái sẵn sàng cho đồng đội ghép nối (Auth & AI API)</h2>
               <div class="grid-2">
                 <div class="card-sunken stack-sm">
-                  <span class="chip">Xác thực: ${esc(getAuthStatusSummary())}</span>
+                  <span class="chip">Xác thực: Supabase Auth</span>
                   <p class="text-muted">
                     Tệp cần sửa: <span class="code-pill">frontend/js/config.js</span> và <span class="code-pill">frontend/js/services/auth-adapter.js</span>. Hỗ trợ sẵn cả <strong>Supabase Auth</strong> và <strong>Firebase Auth</strong>.
                   </p>
@@ -130,7 +129,7 @@
               <h2 class="section-title">3. Thành phần tương tác & Chuyển động xúc giác (120ms / 240ms / 420ms)</h2>
               <div class="row-wrap">
                 <button type="button" class="btn btn-primary">Nút hành động chính</button>
-                <button type="button" class="btn btn-accent">Nút nhấn Dùng thử</button>
+                <button type="button" class="btn btn-accent">Nút nhấn Đăng ký</button>
                 <button type="button" class="btn btn-secondary">Nút thứ cấp</button>
                 <button type="button" class="btn btn-danger">Cảnh báo khẩn</button>
                 <span class="chip">Đã đồng bộ</span>

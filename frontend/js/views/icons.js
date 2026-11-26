@@ -1,5 +1,5 @@
 /**
- * BẢN NHÀ — Bộ biểu tượng hình học SVG nét 1.75px & Dải thổ cẩm 6px
+ * BẢN NHÀ — Bộ biểu tượng SVG nét đều 1.75px
  */
 (function initIcons(global) {
   const PATHS = {
@@ -40,40 +40,6 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
   }
 
-  let stripeSeq = 0;
-  function tribalStripe() {
-    stripeSeq += 1;
-    const id = `bn-brocade-${stripeSeq}`;
-    return `
-      <div class="tribal-stripe" aria-hidden="true">
-        <svg width="100%" height="6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="${id}" width="32" height="6" patternUnits="userSpaceOnUse">
-              <rect width="32" height="6" fill="#163F33"/>
-              <rect x="0" y="0" width="8" height="6" fill="#B8431E"/>
-              <polygon points="12,0 16,3 12,6 8,3" fill="#E3B23C"/>
-              <rect x="16" y="1" width="6" height="4" fill="#FAF6EE"/>
-              <polygon points="27,0 31,3 27,6 23,3" fill="#E3B23C"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="6" fill="url(#${id})"/>
-        </svg>
-      </div>`;
-  }
-
-  /** Dãy núi vùng cao 2 lớp (dùng ở trang giới thiệu) */
-  function ridge(back = '#E3ECE6', front = '#F3EDE0') {
-    return `
-      <div class="ridge" aria-hidden="true">
-        <svg class="ridge-back" viewBox="0 0 1440 200" preserveAspectRatio="none">
-          <path d="M0 130 120 84l90 30 120-70 120 60 110-40 130 62 110-72 130 58 120-80 130 66 120-38 140 48v142H0Z" fill="${back}"/>
-        </svg>
-        <svg class="ridge-front" viewBox="0 0 1440 200" preserveAspectRatio="none">
-          <path d="M0 172 140 134l120 26 120-48 140 46 140-34 120 44 140-38 140 34 140-46 140 40 100-18v88H0Z" fill="${front}"/>
-        </svg>
-      </div>`;
-  }
-
   global.BanNha = global.BanNha || {};
-  global.BanNha.icons = { icon, tribalStripe, ridge };
+  global.BanNha.icons = { icon };
 })(window);

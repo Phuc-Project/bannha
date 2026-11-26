@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(default=5, ge=1, le=50)
 
     account_email_domain: str = "bannha.internal"
+    # Which school self-registered accounts join; None = the oldest school in the database.
+    school_code: str | None = None
     max_upload_mb: int = Field(default=5, ge=1, le=20)
     timezone: str = "Asia/Ho_Chi_Minh"
 

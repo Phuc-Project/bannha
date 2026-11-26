@@ -104,7 +104,7 @@
           grid[y][x] = (seed & 1) === 1;
         }
         if (grid[y][x]) {
-          rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="#163F33"/>`;
+          rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="#114432"/>`;
         }
       }
     }
