@@ -40,7 +40,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm --workspace web run preview -- --host 127.0.0.1 --port 4173 --strictPort',
+    command: 'npm --workspace frontend run preview -- --host 127.0.0.1 --port 4173 --strictPort',
     cwd: repoRoot,
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: !process.env.CI,

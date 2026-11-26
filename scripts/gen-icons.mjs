@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { deflateSync } from 'node:zlib';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const publicDir = path.resolve(scriptDir, '..', 'web', 'public');
+const publicDir = path.resolve(scriptDir, '..', 'frontend', 'public');
 
 const COLORS = {
   forest900: [0x16, 0x3f, 0x33, 0xff],
@@ -128,4 +128,4 @@ mkdirSync(publicDir, { recursive: true });
 writeFileSync(path.join(publicDir, 'favicon.svg'), faviconSvg, 'utf8');
 writeFileSync(path.join(publicDir, 'pwa-192x192.png'), renderIconPng(192));
 writeFileSync(path.join(publicDir, 'pwa-512x512.png'), renderIconPng(512));
-process.stdout.write('Generated favicon.svg, pwa-192x192.png, pwa-512x512.png in web/public/\n');
+process.stdout.write('Generated favicon.svg, pwa-192x192.png, pwa-512x512.png in frontend/public/\n');

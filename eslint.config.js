@@ -47,7 +47,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/**/*.mjs', 'web/postcss.config.js'],
+    files: ['scripts/**/*.mjs', 'frontend/postcss.config.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

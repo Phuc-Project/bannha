@@ -1,8 +1,8 @@
 node_modules
 dist
 dev-dist
-web/dist
-web/dev-dist
+frontend/dist
+frontend/dev-dist
 *.tsbuildinfo
 .env
 .env.*

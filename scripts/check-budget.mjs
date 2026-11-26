@@ -50,7 +50,7 @@ export function analyzeInitialBundleGzip(distDir) {
 const currentFile = fileURLToPath(import.meta.url);
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(currentFile)) {
   const repoRoot = path.resolve(path.dirname(currentFile), '..');
-  const distDir = path.join(repoRoot, 'web', 'dist');
+  const distDir = path.join(repoRoot, 'frontend', 'dist');
   const { files, totalGzipBytes } = analyzeInitialBundleGzip(distDir);
 
   for (const item of files) {
