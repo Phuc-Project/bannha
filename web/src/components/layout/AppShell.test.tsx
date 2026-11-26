@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { Bell, BookOpen, CalendarCheck, Home, ShieldAlert, Utensils, Users } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
 import { AppShell, type NavItem } from './AppShell';
@@ -12,8 +12,8 @@ const SIX_NAV_ITEMS: NavItem[] = [
   { id: 'extra', label: 'Mục thứ 6', icon: Bell, path: '/extra' },
 ];
 
-describe('AppShell role-adaptive desktop & mobile layout (§3.6)', () => {
-  it('renders SyncBadge, max 5 BottomNav items, and NO Sidebar for student/parent', () => {
+describe('AppShell Desktop (>=768px) & F12 Mobile (<768px) layout', () => {
+  it('renders Desktop left Sidebar and hides BottomNav above md (768px) while capping mobile tabs at 5', () => {
     const { container } = render(
       <AppShell
         role="student"
@@ -28,17 +28,20 @@ describe('AppShell role-adaptive desktop & mobile layout (§3.6)', () => {
     );
 
     expect(screen.getByText('Đã đồng bộ 2 phút trước')).toBeInTheDocument();
-    expect(container.querySelector('aside')).toBeNull();
+    const sidebar = container.querySelector('aside');
+    expect(sidebar).not.toBeNull();
+    expect(sidebar?.className).toContain('md:flex');
 
-    const bottomNav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
+    const bottomNav = screen.getByRole('navigation', { name: 'Điều hướng di động' });
+    expect(bottomNav.className).toContain('md:hidden');
     expect(bottomNav.querySelectorAll('button')).toHaveLength(5);
-    expect(screen.queryByText('Mục thứ 6')).not.toBeInTheDocument();
+    expect(within(bottomNav).queryByText('Mục thứ 6')).not.toBeInTheDocument();
   });
 
-  it('renders full-height left Sidebar with badge & footer for staff roles on desktop', () => {
+  it('shows school identity, badge count, and footer info inside forest Sidebar for staff roles', () => {
     const staffNav: NavItem[] = [
-      { id: 'desk', label: 'Điểm danh QR', icon: CalendarCheck, path: '/ca-truc' },
-      { id: 'leaves', label: 'Duyệt đơn phép', icon: Users, path: '/duyet-don', badgeCount: 2 },
+      { id: 'desk', label: 'Điểm danh', icon: CalendarCheck, path: '/ca-truc' },
+      { id: 'leaves', label: 'Đơn phép', icon: Users, path: '/duyet-don', badgeCount: 2 },
     ];
 
     const { container } = render(
@@ -56,20 +59,13 @@ describe('AppShell role-adaptive desktop & mobile layout (§3.6)', () => {
       </AppShell>,
     );
 
-    expect(screen.getAllByText('Đang chờ gửi 3 mục').length).toBeGreaterThanOrEqual(1);
     const sidebar = container.querySelector('aside');
-    expect(sidebar).not.toBeNull();
-    expect(sidebar?.className).toContain('lg:flex');
     expect(sidebar?.textContent).toContain('Trường PTDTNT [TÊN TRƯỜNG]');
     expect(sidebar?.textContent).toContain('Trực KTX: 0218 3851 102');
     expect(sidebar?.textContent).toContain('2');
   });
 
-  it('hides desktop Sidebar when forceViewport="mobile" is used for styleguide preview', () => {
-    const staffNav: NavItem[] = [
-      { id: 'desk', label: 'Điểm danh QR', icon: CalendarCheck, path: '/ca-truc' },
-    ];
-
+  it('hides Desktop Sidebar and forces mobile BottomNav when forceViewport="mobile"', () => {
     const { container } = render(
       <AppShell
         embedded
@@ -77,13 +73,15 @@ describe('AppShell role-adaptive desktop & mobile layout (§3.6)', () => {
         role="dorm_staff"
         title="Ca trực Ký túc xá"
         syncState={{ status: 'synced', minutesAgo: 1 }}
-        navItems={staffNav}
-        activePath="/ca-truc"
+        navItems={SIX_NAV_ITEMS.slice(0, 4)}
+        activePath="/"
       >
         <div>Xem khung điện thoại</div>
       </AppShell>,
     );
 
     expect(container.querySelector('aside')).toBeNull();
+    const bottomNav = screen.getByRole('navigation', { name: 'Điều hướng di động' });
+    expect(bottomNav.className).not.toContain('md:hidden');
   });
 });

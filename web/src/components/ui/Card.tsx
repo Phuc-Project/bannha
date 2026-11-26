@@ -11,7 +11,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const VARIANT_CLASSES: Record<CardVariant, string> = {
   default: 'border-line bg-surface text-ink',
-  featured: 'border-turmeric bg-turmeric-50 text-ink',
+  featured: 'border-turmeric/80 border-l-[3px] border-l-turmeric bg-turmeric-50 text-ink',
   forest: 'border-forest-900 bg-forest-900 text-surface',
 };
 
@@ -25,7 +25,7 @@ export function Card({
   return (
     <div
       className={cx(
-        'rounded-card border',
+        'rounded-[8px] border',
         VARIANT_CLASSES[variant],
         padding === 'md' && 'p-4',
         className,

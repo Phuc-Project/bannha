@@ -10,23 +10,23 @@ export interface StatusBadgeProps {
 
 const TONE_CLASSES: Record<StatusTone, { wrapper: string; dot: string }> = {
   neutral: {
-    wrapper: 'border-line bg-surface text-ink',
+    wrapper: 'bg-cream text-muted border-line',
     dot: 'bg-muted',
   },
   forest: {
-    wrapper: 'border-line bg-forest-50 text-forest-700',
+    wrapper: 'bg-forest-50 text-forest-700 border-forest-50',
     dot: 'bg-forest-700',
   },
   warning: {
-    wrapper: 'border-turmeric bg-turmeric-50 text-clay-600',
+    wrapper: 'bg-turmeric-50 text-clay-600 border-turmeric/60',
     dot: 'bg-clay-600',
   },
   success: {
-    wrapper: 'border-success bg-surface text-success',
+    wrapper: 'bg-surface text-success border-line',
     dot: 'bg-success',
   },
   danger: {
-    wrapper: 'border-danger bg-surface text-danger',
+    wrapper: 'bg-surface text-danger border-danger/40',
     dot: 'bg-danger',
   },
 };
@@ -36,12 +36,12 @@ export function StatusBadge({ label, tone = 'neutral', className }: StatusBadgeP
   return (
     <span
       className={cx(
-        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill border px-2.5 py-1 text-[length:var(--font-size-sub)] font-medium leading-tight',
+        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[4px] border px-2 py-0.5 text-[13px] font-medium leading-snug',
         styles.wrapper,
         className,
       )}
     >
-      <span aria-hidden="true" className={cx('h-2 w-2 shrink-0 rounded-pill', styles.dot)} />
+      <span aria-hidden="true" className={cx('h-1.5 w-1.5 shrink-0 rounded-full', styles.dot)} />
       <span>{label}</span>
     </span>
   );

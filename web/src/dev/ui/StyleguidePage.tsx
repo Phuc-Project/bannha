@@ -1,4 +1,4 @@
-import { ArrowLeft, Monitor, Smartphone, Type } from 'lucide-react';
+import { ArrowLeft, Type } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTextSize } from '../../app/providers/text-size';
@@ -8,7 +8,6 @@ import { SectionTitle } from '../../components/ui/SectionTitle';
 import { SyncBadge, type SyncBadgeProps } from '../../components/ui/SyncBadge';
 import { Tabs } from '../../components/ui/Tabs';
 import { TribalStripe } from '../../components/ui/TribalStripe';
-import { cx } from '../../lib/cx';
 import { LoginPreview } from './previews/LoginPreview';
 import { ParentTodayPreview } from './previews/ParentTodayPreview';
 import { StaffDeskPreview } from './previews/StaffDeskPreview';
@@ -22,7 +21,10 @@ import { FoundationsSection } from './sections/FoundationsSection';
 
 type SyncPresetKey = 'synced' | 'pending' | 'offline' | 'error';
 
-const SYNC_PRESETS: Record<SyncPresetKey, Omit<SyncBadgeProps, 'inverted'>> = {
+const SYNC_PRESETS: Record<
+  SyncPresetKey,
+  Omit<SyncBadgeProps, 'inverted' | 'responsiveWorkspace'>
+> = {
   synced: { status: 'synced', minutesAgo: 2 },
   pending: { status: 'pending', pendingCount: 3 },
   offline: { status: 'offline' },
@@ -30,7 +32,7 @@ const SYNC_PRESETS: Record<SyncPresetKey, Omit<SyncBadgeProps, 'inverted'>> = {
 };
 
 const TOC_LINKS = [
-  { href: '#role-previews', label: 'Màn mẫu 5 vai trò' },
+  { href: '#role-previews', label: 'Màn hình 5 vai trò' },
   { href: '#foundations', label: '1. Bảng màu & WCAG' },
   { href: '#actions', label: '2. Nút & SOS 2 giây' },
   { href: '#forms', label: '3. Biểu mẫu & Chip' },
@@ -40,12 +42,7 @@ const TOC_LINKS = [
 export default function StyleguidePage() {
   const { textSize, toggleTextSize } = useTextSize();
   const [syncKey, setSyncKey] = useState<SyncPresetKey>('synced');
-  const [previewMode, setPreviewMode] = useState<'responsive' | 'mobile'>('responsive');
   const activeSync = SYNC_PRESETS[syncKey];
-
-  const wrapPreview = (node: JSX.Element) => (
-    <div className={cx(previewMode === 'mobile' && 'mx-auto w-full max-w-[360px]')}>{node}</div>
-  );
 
   return (
     <div className="min-h-screen bg-cream text-ink">
@@ -54,33 +51,23 @@ export default function StyleguidePage() {
       </div>
 
       <div className="flex min-w-0">
-        {/* Desktop left TOC & controls rail (>= 1024px) */}
+        {/* Desktop left TOC rail (>= 768px) */}
         <aside
           aria-label="Mục lục Styleguide"
-          className="hidden w-[256px] shrink-0 flex-col border-r border-line bg-surface lg:sticky lg:top-[6px] lg:flex lg:h-[calc(100vh-6px)]"
+          className="hidden w-[240px] shrink-0 flex-col bg-forest-900 text-cream md:sticky md:top-[6px] md:flex md:h-[calc(100vh-6px)]"
         >
-          <div className="border-b border-line bg-forest-900 px-4 py-4 text-surface">
-            <p className="text-lg font-bold tracking-[-0.01em] text-surface">BẢN NHÀ</p>
-            <p className="mt-0.5 text-[length:var(--font-size-sub)] text-cream/85">
-              Duyệt giao diện Giai đoạn 0
-            </p>
-            <Link
-              to="/"
-              className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-control border border-cream/30 px-3 text-[length:var(--font-size-sub)] font-semibold text-cream hover:bg-surface/10"
-            >
-              <ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" />
-              <span>Về màn chính</span>
-            </Link>
+          <div className="border-b border-cream/15 px-5 py-4">
+            <p className="text-[19px] font-bold tracking-[-0.01em] text-surface">BẢN NHÀ</p>
+            <p className="mt-0.5 text-[13px] text-cream/75">Hệ thống giao diện (/dev/ui)</p>
           </div>
 
           <nav aria-label="Mục lục thành phần" className="flex-1 overflow-y-auto px-3 py-4">
-            <p className="mb-2 px-3 text-xs font-semibold text-muted">Danh mục kiểm duyệt</p>
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-0.5">
               {TOC_LINKS.map((item) => (
                 <li key={item.href}>
                   <a
                     href={item.href}
-                    className="flex min-h-[44px] items-center rounded-control px-3 py-2 text-[length:var(--font-size-sub)] font-semibold text-ink transition-colors duration-150 hover:bg-forest-50 hover:text-forest-700"
+                    className="flex min-h-[38px] items-center rounded-[6px] px-3 py-2 text-[14px] font-medium text-cream/85 transition-colors hover:bg-surface/10 hover:text-surface"
                   >
                     {item.label}
                   </a>
@@ -88,42 +75,44 @@ export default function StyleguidePage() {
               ))}
             </ul>
 
-            <div className="mt-5 border-t border-line pt-4">
-              <p className="mb-2 px-1 text-xs font-semibold text-muted">Thử chế độ hiển thị</p>
-              <Button variant="secondary" icon={Type} fullWidth onClick={toggleTextSize}>
+            <div className="mt-5 border-t border-cream/15 pt-4">
+              <Button variant="secondary" size="sm" icon={Type} fullWidth onClick={toggleTextSize}>
                 {textSize === 'large' ? 'Đang bật Chữ lớn' : 'Bật Chữ lớn (18px)'}
               </Button>
             </div>
           </nav>
 
-          <div className="border-t border-line bg-cream/70 px-4 py-3 text-[length:var(--font-size-sub)] text-muted">
-            <p className="font-semibold text-ink">{SCHOOL_INFO.name}</p>
-            <p>Ngân sách JS &lt; 170KB gzip</p>
+          <div className="border-t border-cream/15 px-4 py-3.5 text-[13px]">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 font-medium text-cream/85 hover:text-surface"
+            >
+              <ArrowLeft size={15} strokeWidth={1.75} aria-hidden="true" />
+              <span>Quay lại ứng dụng</span>
+            </Link>
           </div>
         </aside>
 
         {/* Main content column */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-[6px] z-30 border-b border-line bg-forest-900 px-4 py-3 text-surface lg:static lg:bg-surface lg:px-6 lg:py-3.5 lg:text-ink">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+          <header className="sticky top-[6px] z-30 border-b border-line bg-forest-900 px-4 py-3 text-surface md:static md:bg-surface md:px-6 md:py-3.5 md:text-ink">
+            <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3">
               <div>
-                <h1 className="text-[length:var(--font-size-section)] font-bold tracking-[-0.01em] text-surface lg:text-[length:var(--font-size-title)] lg:text-ink">
+                <h1 className="text-[19px] font-bold tracking-[-0.01em] text-surface md:text-[21px] md:text-ink">
                   Hệ thống giao diện BẢN NHÀ
                 </h1>
-                <p className="text-[length:var(--font-size-sub)] text-cream/85 lg:text-muted">
-                  Kiểm duyệt trọn bộ design tokens WCAG AA, component và bố cục Desktop 1280px ↔ Di
-                  động 360px
+                <p className="text-[13px] text-cream/80 md:text-muted">
+                  Tài liệu chuẩn hóa token màu WCAG AA, component và bố cục Desktop / F12 Mobile
                 </p>
               </div>
               <SyncBadge {...activeSync} responsiveWorkspace />
             </div>
           </header>
 
-          <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-5 lg:px-6 lg:py-6">
-            {/* Global sync simulator bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface p-3.5">
-              <span className="text-[length:var(--font-size-sub)] font-semibold text-muted">
-                Giả lập trạng thái mạng / đồng bộ toàn trang:
+          <main className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-4 py-5 md:px-6 md:py-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-4">
+              <span className="text-[13px] font-medium text-muted">
+                Kiểm thử trạng thái đồng bộ:
               </span>
               <div className="flex flex-wrap gap-2">
                 <Chip selected={syncKey === 'synced'} onClick={() => setSyncKey('synced')}>
@@ -141,29 +130,10 @@ export default function StyleguidePage() {
               </div>
             </div>
 
-            {/* 5 Realistic role previews with Desktop vs 360px toggle */}
             <section id="role-previews" className="flex flex-col gap-3">
               <SectionTitle
-                title="Màn hình mẫu theo 5 vai trò (Desktop & Điện thoại)"
-                subtitle="Mở thẳng vào việc cần làm hôm nay — nhân viên có Sidebar trái cố định trên Desktop"
-                action={
-                  <div className="hidden items-center gap-2 lg:flex">
-                    <Chip
-                      icon={Monitor}
-                      selected={previewMode === 'responsive'}
-                      onClick={() => setPreviewMode('responsive')}
-                    >
-                      Khổ Desktop
-                    </Chip>
-                    <Chip
-                      icon={Smartphone}
-                      selected={previewMode === 'mobile'}
-                      onClick={() => setPreviewMode('mobile')}
-                    >
-                      Khổ Điện thoại 360px
-                    </Chip>
-                  </div>
-                }
+                title="Màn hình mẫu theo 5 vai trò"
+                subtitle="Mở bình thường là bố cục Desktop toàn màn hình; thu nhỏ hoặc bấm F12 (< 768px) để xem chế độ điện thoại"
               />
 
               <Tabs
@@ -173,35 +143,27 @@ export default function StyleguidePage() {
                   {
                     id: 'staff',
                     label: 'Quản sinh',
-                    content: wrapPreview(
-                      <StaffDeskPreview syncState={activeSync} forceViewport={previewMode} />,
-                    ),
+                    content: <StaffDeskPreview syncState={activeSync} />,
                   },
                   {
                     id: 'teacher',
                     label: 'Giáo viên',
-                    content: wrapPreview(
-                      <TeacherDeskPreview syncState={activeSync} forceViewport={previewMode} />,
-                    ),
+                    content: <TeacherDeskPreview syncState={activeSync} />,
                   },
                   {
                     id: 'student',
                     label: 'Học sinh',
-                    content: wrapPreview(
-                      <StudentTodayPreview syncState={activeSync} forceViewport={previewMode} />,
-                    ),
+                    content: <StudentTodayPreview syncState={activeSync} />,
                   },
                   {
                     id: 'parent',
                     label: 'Phụ huynh',
-                    content: wrapPreview(
-                      <ParentTodayPreview syncState={activeSync} forceViewport={previewMode} />,
-                    ),
+                    content: <ParentTodayPreview syncState={activeSync} />,
                   },
                   {
                     id: 'login',
                     label: 'Đăng nhập',
-                    content: wrapPreview(<LoginPreview />),
+                    content: <LoginPreview />,
                   },
                 ]}
               />
@@ -222,7 +184,7 @@ export default function StyleguidePage() {
           </main>
 
           <footer className="mt-8 border-t border-line bg-surface">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-[length:var(--font-size-sub)] text-muted lg:px-6">
+            <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2 px-4 py-4 text-[13px] text-muted md:px-6">
               <span>Đơn vị: {SCHOOL_INFO.name}</span>
               <span className="font-semibold text-forest-700">BẢN NHÀ — Xa bản, vẫn có nhà.</span>
             </div>
