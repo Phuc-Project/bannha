@@ -8,8 +8,8 @@
 
 ```text
 ban-nha/
-├── web/        ← Frontend (Vite + React 18 + TypeScript strict + Tailwind PWA)
-├── supabase/   ← Backend (migrations, RLS, Edge Functions, seed, kiểm thử RLS)
+├── frontend/   ← Frontend (Vite + React 18 + TypeScript strict + Tailwind PWA)
+├── backend/    ← API FastAPI (Python) + supabase/ (migrations, RLS, seed) — xem backend/README.md
 ├── e2e/        ← Kiểm thử Playwright E2E (khổ 360×800 và 1280×800)
 ├── scripts/    ← Công cụ sinh icon PWA, kiểm tra ngân sách bundle, seed & sinh type
 └── docs/       ← Kế hoạch giai đoạn (plans/), quyết định kỹ thuật (assumptions.md), screenshots
@@ -21,8 +21,18 @@ ban-nha/
 npm install          # Cài đặt dependencies cho toàn bộ workspace
 npm run dev          # Chạy Vite dev server (Styleguide tại http://localhost:5173/dev/ui)
 npm run test         # Chạy kiểm thử đơn vị & component (Vitest)
-npm run build        # Build bản sản phẩm PWA vào web/dist/
+npm run build        # Build bản sản phẩm PWA vào frontend/dist/
 npm run check:budget # Kiểm tra tổng JS khởi tạo < 170KB gzip
 npm run test:e2e     # Chạy kiểm thử E2E Playwright (360px & 1280px)
 npm run verify       # Cổng kiểm định đầy đủ: lint + typecheck + test + build + check:budget
+```
+
+### Backend
+
+```bash
+cd backend
+uv sync && cp .env.example .env
+npx supabase start                                   # cần Docker Desktop đang chạy
+uv run uvicorn --factory app.main:app_factory --reload --port 8000   # http://localhost:8000/docs
+uv run pytest --cov && uv run ruff check . && uv run mypy
 ```

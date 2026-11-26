@@ -1,8 +1,7 @@
-# Phân vùng Backend Supabase (`supabase/`)
+# Supabase (thuộc backend)
 
-Thư mục này chứa toàn bộ cấu hình cơ sở dữ liệu và logic phía máy chủ của **BẢN NHÀ** (triển khai từ **Giai đoạn 1**):
+- `config.jsonc` — cấu hình stack local (`npx supabase start`, chạy trong thư mục `backend/`).
+- `migrations/` — schema Postgres, hàm `private.*`, RLS cho mọi bảng, Storage, Realtime (từ giai đoạn B1).
+- `seed.sql` — dữ liệu mẫu (B1); mật khẩu tài khoản mẫu đặt bằng `scripts/seed.py` từ biến `SEED_PASSWORD`.
 
-- `migrations/`: Schema Postgres, các hàm `private.*` (`SECURITY DEFINER`), chính sách RLS trên mọi bảng, triggers và views (`meal_counts`).
-- `functions/`: Supabase Edge Functions (`admin-create-users`, `ai-tutor`, `attendance-verify`).
-- `tests/`: Bộ kiểm thử RLS tự động (bao gồm kiểm chứng chặn truy cập trái quyền).
-- `seed.sql`: Dữ liệu mẫu thực tế của trường PTDTNT.
+Logic nghiệp vụ nằm ở FastAPI (`../app/`), không dùng Edge Functions.

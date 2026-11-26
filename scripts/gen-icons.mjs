@@ -128,4 +128,6 @@ mkdirSync(publicDir, { recursive: true });
 writeFileSync(path.join(publicDir, 'favicon.svg'), faviconSvg, 'utf8');
 writeFileSync(path.join(publicDir, 'pwa-192x192.png'), renderIconPng(192));
 writeFileSync(path.join(publicDir, 'pwa-512x512.png'), renderIconPng(512));
-process.stdout.write('Generated favicon.svg, pwa-192x192.png, pwa-512x512.png in frontend/public/\n');
+process.stdout.write(
+  'Generated favicon.svg, pwa-192x192.png, pwa-512x512.png in frontend/public/\n',
+);

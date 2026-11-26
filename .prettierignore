@@ -8,3 +8,6 @@ test-results
 .superpowers
 package-lock.json
 PROMPT.md
+backend/.venv
+backend/supabase
+**/__pycache__
