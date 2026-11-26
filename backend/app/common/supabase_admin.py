@@ -67,6 +67,46 @@ class SupabaseAdmin:
     async def set_password(self, user_id: UUID, password: str) -> None:
         await self._call("PUT", f"/auth/v1/admin/users/{user_id}", {"password": password})
 
+    async def create_user(self, username: str, password: str) -> UUID:
+        """Create a confirmed Supabase Auth account and return its user UUID."""
+        try:
+            res = await self._http.post(
+                f"{self._base}/auth/v1/admin/users",
+                headers=self._headers,
+                json={
+                    "email": self.email_for(username),
+                    "password": password,
+                    "email_confirm": True,
+                },
+            )
+        except httpx.HTTPError as exc:
+            logger.warning("Supabase create_user failed: %s", exc)
+            raise _UNAVAILABLE from exc
+        if res.status_code in (400, 409, 422):
+            raise AppError("USERNAME_TAKEN", "Mã đăng nhập này đã tồn tại.", 409)
+        if res.status_code >= 400:
+            logger.warning("Supabase admin create_user -> %s", res.status_code)
+            raise _UNAVAILABLE
+        data: dict[str, Any] = res.json()
+        return UUID(str(data["id"]))
+
+    async def download_object(self, bucket: str, path: str) -> tuple[bytes, str]:
+        """Download a private Storage object using the service role key."""
+        try:
+            res = await self._http.get(
+                f"{self._base}/storage/v1/object/{bucket}/{quote(path)}",
+                headers=self._headers,
+            )
+        except httpx.HTTPError as exc:
+            logger.warning("Storage download failed: %s", exc)
+            raise _UNAVAILABLE from exc
+        if res.status_code in (400, 404):
+            raise AppError("IMAGE_NOT_FOUND", "Không tìm thấy ảnh đính kèm.", 404)
+        if res.status_code >= 400:
+            raise _UNAVAILABLE
+        media_type = res.headers.get("content-type", "image/webp").split(";")[0].strip()
+        return res.content, media_type
+
     async def create_signed_upload(self, bucket: str, path: str) -> dict[str, Any]:
         """Returns {"url": ..., "token": ...}; the client PUTs the file to that URL."""
         data = await self._call(

@@ -5,7 +5,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
-from uuid import UUID
+from uuid import NAMESPACE_OID, UUID, uuid5
 
 import httpx
 import jwt
@@ -38,12 +38,14 @@ class JwtVerifier:
         audience: str,
         resolve_key: KeyResolver,
         algorithms: list[str],
+        require_authenticated_role: bool = True,
         leeway_seconds: int = 30,
     ) -> None:
         self._issuer = issuer
         self._audience = audience
         self._resolve_key = resolve_key
         self._algorithms = algorithms
+        self._require_role = require_authenticated_role
         self._leeway = leeway_seconds
 
     def verify(self, token: str) -> TokenClaims:
@@ -65,12 +67,17 @@ class JwtVerifier:
         except (jwt.PyJWTError, ValueError) as exc:
             raise AuthError() from exc
 
-        if payload.get("role") != "authenticated":
+        if self._require_role and payload.get("role") != "authenticated":
+            raise AuthError()
+        raw_sub = str(payload.get("sub") or "").strip()
+        if not raw_sub:
             raise AuthError()
         try:
-            user_id = UUID(str(payload["sub"]))
-        except ValueError as exc:
-            raise AuthError() from exc
+            user_id = UUID(raw_sub)
+        except ValueError:
+            if self._require_role:
+                raise AuthError() from None
+            user_id = uuid5(NAMESPACE_OID, f"firebase:{raw_sub}")
         session_id = payload.get("session_id")
         return TokenClaims(
             user_id=user_id,
@@ -141,7 +148,8 @@ def build_verifier(settings: Settings) -> JwtVerifier:
     jwks = ThrottledJwks(lambda: fetch_jwks(url))
     return JwtVerifier(
         issuer=settings.jwt_issuer,
-        audience=settings.supabase_jwt_audience,
+        audience=settings.jwt_audience,
         resolve_key=jwks.resolve,
         algorithms=ASYMMETRIC_ALGORITHMS,
+        require_authenticated_role=settings.auth_provider == "supabase",
     )

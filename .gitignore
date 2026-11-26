@@ -1,18 +1,10 @@
-node_modules
-dist
-dev-dist
-frontend/dist
-frontend/dev-dist
-*.tsbuildinfo
 .env
 .env.*
 !.env.example
-playwright-report
-test-results
-coverage
-.superpowers
+.DS_Store
+Thumbs.db
 
-# backend (Python)
+# Backend Python
 backend/.venv/
 backend/.env
 **/__pycache__/
@@ -20,6 +12,5 @@ backend/.env
 .mypy_cache/
 .ruff_cache/
 .coverage
-htmlcov/
 backend/supabase/.temp/
 backend/supabase/.branches/

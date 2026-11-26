@@ -1,4 +1,4 @@
-"""GET /api/v1/sync/pull and POST /api/v1/sync/push."""
+"""POST /api/v1/sync/pull, POST /api/v1/sync/push, and GET /api/v1/sync/tables."""
 
 from datetime import UTC, datetime
 from typing import Annotated, Any
@@ -10,7 +10,14 @@ from pydantic import BaseModel, Field
 from app.common.deps import User, UserConn
 from app.common.schemas import ApiResponse, ok
 from app.core.errors import AppError
-from app.modules.sync import core_commands  # noqa: F401  (registers commands)
+from app.modules.contact_book import commands as _contact_book_commands  # noqa: F401
+from app.modules.culture import commands as _culture_commands  # noqa: F401
+from app.modules.donations import commands as _donations_commands  # noqa: F401
+from app.modules.dorm import commands as _dorm_commands  # noqa: F401
+from app.modules.health import commands as _health_commands  # noqa: F401
+from app.modules.kitchen import commands as _kitchen_commands  # noqa: F401
+from app.modules.scholarships import commands as _scholarships_commands  # noqa: F401
+from app.modules.sync import core_commands as _core_commands  # noqa: F401
 from app.modules.sync.cursor import CursorError
 from app.modules.sync.pull import pull_table
 from app.modules.sync.push import OpResult, apply_op

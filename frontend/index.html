@@ -6,14 +6,52 @@
     <meta name="theme-color" content="#163F33" />
     <meta
       name="description"
-      content="BẢN NHÀ — Xa bản, vẫn có nhà. Ứng dụng hỗ trợ học sinh dân tộc nội trú."
+      content="BẢN NHÀ — Ứng dụng hỗ trợ học sinh dân tộc nội trú. Xa bản, vẫn có nhà."
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
-    <title>BẢN NHÀ — Đời sống nội trú</title>
+    <script>
+      if (window.location.protocol !== 'file:') {
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = './manifest.webmanifest';
+        document.head.appendChild(manifest);
+      }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./pwa-192x192.png" />
+    <link rel="stylesheet" href="./styles/tokens.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/motion.css" />
+    <link rel="stylesheet" href="./styles/landing.css" />
+    <title>BẢN NHÀ — Ứng dụng hỗ trợ học sinh dân tộc nội trú</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="app" class="app-boot">
+      <div class="boot-box">
+        <p class="boot-title">BẢN NHÀ</p>
+        <p class="boot-sub">Đang mở dữ liệu nội trú ngoại tuyến…</p>
+      </div>
+    </div>
+    <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+
+    <!-- 100% HTML5 + CSS3 + JavaScript thuần (chạy trực tiếp bằng index.html hoặc Live Server) -->
+    <script defer src="./js/config.js"></script>
+    <script defer src="./js/core/utils.js"></script>
+    <script defer src="./js/core/domain.js"></script>
+    <script defer src="./js/core/seed.js"></script>
+    <script defer src="./js/services/auth-adapter.js"></script>
+    <script defer src="./js/services/ai-tutor-api.js"></script>
+    <script defer src="./js/services/server-sync.js"></script>
+    <script defer src="./js/core/store.js"></script>
+    <script defer src="./js/views/icons.js"></script>
+    <script defer src="./js/views/landing.js"></script>
+    <script defer src="./js/views/shell.js"></script>
+    <script defer src="./js/views/auth-views.js"></script>
+    <script defer src="./js/views/dashboards.js"></script>
+    <script defer src="./js/views/modules-life.js"></script>
+    <script defer src="./js/views/modules-study-health.js"></script>
+    <script defer src="./js/views/modules-community-admin.js"></script>
+    <script defer src="./js/views/styleguide.js"></script>
+    <script defer src="./js/app.js"></script>
   </body>
 </html>

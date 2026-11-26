@@ -1,0 +1,1 @@
+"""Kitchen & transparent meals module."""

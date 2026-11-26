@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     )
 
     supabase_url: AnyHttpUrl
+    auth_provider: Literal["supabase", "firebase"] = "supabase"
+    firebase_project_id: str | None = None
     supabase_jwks_url: AnyHttpUrl | None = None
     # Only for local stacks that still sign with the legacy shared secret (HS256).
     supabase_jwt_secret: SecretStr | None = None
@@ -30,6 +32,13 @@ class Settings(BaseSettings):
     account_email_domain: str = "bannha.internal"
     max_upload_mb: int = Field(default=5, ge=1, le=20)
     timezone: str = "Asia/Ho_Chi_Minh"
+
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-flash-latest"
+    ai_daily_limit_per_student: int = Field(default=30, ge=1, le=200)
+    qr_signing_private_key: SecretStr | None = None
+    qr_key_version: int = Field(default=1, ge=1)
+    jobs_secret: SecretStr | None = None
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -44,12 +53,22 @@ class Settings(BaseSettings):
 
     @property
     def jwt_issuer(self) -> str:
+        if self.auth_provider == "firebase" and self.firebase_project_id:
+            return f"https://securetoken.google.com/{self.firebase_project_id}"
         return f"{self.supabase_base}/auth/v1"
+
+    @property
+    def jwt_audience(self) -> str:
+        if self.auth_provider == "firebase" and self.firebase_project_id:
+            return self.firebase_project_id
+        return self.supabase_jwt_audience
 
     @property
     def jwks_url(self) -> str:
         if self.supabase_jwks_url is not None:
             return str(self.supabase_jwks_url)
+        if self.auth_provider == "firebase":
+            return "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
         return f"{self.jwt_issuer}/.well-known/jwks.json"
 
     @property
