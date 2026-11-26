@@ -61,3 +61,13 @@ async def test_cors_allows_only_the_frontend_origin(client: AsyncClient) -> None
         "/health", headers={"Origin": "https://evil.example", **preflight}
     )
     assert "access-control-allow-origin" not in blocked.headers
+
+
+async def test_oversized_bodies_are_rejected_before_parsing(client: AsyncClient) -> None:
+    res = await client.post(
+        "/api/v1/sync/push",
+        content=b"x" * 1_000_001,
+        headers={"Content-Type": "application/json"},
+    )
+    assert res.status_code == 413
+    assert res.json()["error"]["code"] == "PAYLOAD_TOO_LARGE"

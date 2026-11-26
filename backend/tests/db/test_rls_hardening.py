@@ -1,5 +1,7 @@
 """Exploits found in the B1 security review; each must be blocked."""
 
+from collections.abc import Awaitable, Callable
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -36,21 +38,29 @@ async def test_h1_pending_leave_cannot_be_moved_to_another_student(
 
 
 async def test_h2_file_paths_must_belong_to_the_writer(
-    conn: AsyncConnection, act_as: ActAs
+    conn: AsyncConnection, act_as: ActAs, act_as_system: Callable[[], Awaitable[None]]
 ) -> None:
     me, other = uid("hs24003"), uid("hs24002")
     school = sid("school")
-    mine = f"{school}/{me}/0b0c8f4e-8c1a-4b7a-9d1e-1f2a3b4c5d6e.webp"
-    theirs = f"{school}/{other}/0b0c8f4e-8c1a-4b7a-9d1e-1f2a3b4c5d6e.webp"
+    mine = f"{school}/0b0c8f4e-8c1a-4b7a-9d1e-1f2a3b4c5d6e.webp"
+    mine_culture = f"{school}/1b0c8f4e-8c1a-4b7a-9d1e-1f2a3b4c5d6e.webp"
+    theirs = f"{school}/2b0c8f4e-8c1a-4b7a-9d1e-1f2a3b4c5d6e.webp"
+    await act_as_system()
+    await conn.execute(
+        text("""insert into app.uploads (path, school_id, bucket, owner_id) values
+                (:a, :s, 'room-issues', :me), (:b, :s, 'culture', :me), (:c, :s, 'tutor', :other)"""),
+        {"a": mine, "b": mine_culture, "c": theirs, "s": school, "me": me, "other": other},
+    )
     sql = """insert into app.room_issues (school_id, room_id, reported_by, category, description, photo_path)
              values (private.current_school_id(), :r, :me, 'bed', 'Giường gãy chân', :p)"""
     await act_as("hs24003")
     assert await blocked(conn, sql, r=sid("room:A101"), me=me, p=theirs)
+    assert await blocked(conn, sql, r=sid("room:A101"), me=me, p=mine_culture)  # wrong bucket
     assert not await blocked(conn, sql, r=sid("room:A101"), me=me, p=mine)
     post = """insert into app.culture_posts (school_id, author_id, ethnicity, category, title, body, photo_paths)
               values (private.current_school_id(), :me, 'Dao', 'food', 'Thịt treo gác bếp', 'Món ăn mùa đông của bản em.', :p)"""
-    assert await blocked(conn, post, me=me, p=[mine, theirs])
-    assert not await blocked(conn, post, me=me, p=[mine])
+    assert await blocked(conn, post, me=me, p=[mine_culture, theirs])
+    assert not await blocked(conn, post, me=me, p=[mine_culture])
     assert await blocked(
         conn, "update app.profiles set avatar_path = :p where id = :me", p=theirs, me=me
     )

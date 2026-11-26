@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import Settings, get_settings
 from app.core.db import create_engine
 from app.core.errors import register_error_handlers
+from app.core.limits import BodySizeLimit
 from app.core.security import JwtVerifier, build_verifier
 from app.modules.auth.router import router as auth_router
 from app.modules.me.router import router as me_router
@@ -51,6 +52,7 @@ def create_app(settings: Settings | None = None, verifier: JwtVerifier | None = 
         allow_headers=["Authorization", "Content-Type", "X-Active-Role"],
         max_age=600,
     )
+    app.add_middleware(BodySizeLimit)
     register_error_handlers(app)
     for router in (system_router, me_router, auth_router, sync_router, uploads_router):
         app.include_router(router)

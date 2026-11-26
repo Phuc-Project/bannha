@@ -12,7 +12,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import text
 
-from app.common.deps import AppSettings, Engine, Http, UserAnyState
+from app.common.deps import AppSettings, BearerToken, Engine, Http, UserAnyState
 from app.common.schemas import ApiResponse, ok
 from app.common.supabase_admin import SupabaseAdmin
 from app.core.db import service_transaction
@@ -21,6 +21,7 @@ from app.core.errors import AppError
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 MIN_LENGTH = 8
+MAX_FAILURES = 5  # wrong current passwords per user per 15 minutes
 _HAS_LETTER = re.compile(r"[A-Za-zÀ-ỹ]")
 _HAS_DIGIT = re.compile(r"\d")
 
@@ -55,6 +56,7 @@ def password_problem(password: str, username: str) -> str | None:
 async def change_password(
     body: ChangePasswordIn,
     user: UserAnyState,
+    token: BearerToken,
     http: Http,
     engine: Engine,
     settings: AppSettings,
@@ -63,11 +65,29 @@ async def change_password(
     if problem:
         raise AppError("WEAK_PASSWORD", problem, 422)
 
+    async with service_transaction(engine) as conn:
+        failures = await conn.execute(
+            text("""select count(*) from app.audit_log
+                    where actor_id = :id and action = 'password.change_failed'
+                      and created_at > now() - interval '15 minutes'"""),
+            {"id": user.id},
+        )
+        if failures.scalar_one() >= MAX_FAILURES:
+            raise AppError("TOO_MANY_ATTEMPTS", "Nhập sai nhiều lần. Đợi 15 phút rồi thử lại.", 429)
+
     admin = SupabaseAdmin(http, settings)
     if not await admin.password_is_correct(user.username, body.current_password):
+        async with service_transaction(engine) as conn:
+            await conn.execute(
+                text("""insert into app.audit_log (school_id, actor_id, action, entity, entity_id)
+                        values (:s, :id, 'password.change_failed', 'profile', :id)"""),
+                {"s": user.school_id, "id": user.id},
+            )
         raise AppError("WRONG_PASSWORD", "Mật khẩu hiện tại chưa đúng.", 400)
 
     await admin.set_password(user.id, body.new_password)
+    # A stolen refresh token must not survive a password change.
+    await admin.logout(token, scope="others")
     async with service_transaction(engine) as conn:
         await conn.execute(
             text("update app.profiles set must_change_password = false where id = :id"),

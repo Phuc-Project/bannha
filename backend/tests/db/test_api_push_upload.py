@@ -77,7 +77,8 @@ async def test_upload_url_is_scoped_to_the_user(api: AsyncClient, login: Login) 
         json={"bucket": "culture", "content_type": "image/webp", "size_bytes": 1200},
     )
     data = res.json()["data"]
-    assert data["path"].split("/")[1] == str(uid("hs24001"))
+    assert str(uid("hs24001")) not in data["path"]  # path never reveals the uploader
+    assert data["path"].count("/") == 1
     async with httpx.AsyncClient() as http:
         put = await http.put(
             data["upload_url"],

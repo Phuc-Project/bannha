@@ -43,7 +43,7 @@ async def test_all_tables_have_soft_delete_and_sync_columns(conn: AsyncConnectio
             select c.relname
             from pg_class c join pg_namespace n on n.oid = c.relnamespace
             where n.nspname = 'app' and c.relkind = 'r'
-              and c.relname not in ('sync_ops', 'reminder_log', 'audit_log')
+              and c.relname not in ('sync_ops', 'reminder_log', 'audit_log', 'uploads')
               and not exists (
                 select 1 from information_schema.columns col
                 where col.table_schema = 'app' and col.table_name = c.relname

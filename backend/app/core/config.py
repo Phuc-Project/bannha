@@ -10,7 +10,8 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_env: Literal["development", "test", "production"] = "development"
+    # Safe default: a missing APP_ENV must not expose /docs or debug logging.
+    app_env: Literal["development", "test", "production"] = "production"
     # Comma-separated in the environment: "https://a.example,https://b.example"
     cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:5173"]

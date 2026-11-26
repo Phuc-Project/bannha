@@ -29,6 +29,7 @@ class SupabaseAdmin:
         return f"{username}@{self._email_domain}"
 
     async def password_is_correct(self, username: str, password: str) -> bool:
+        """Checks the password, then immediately revokes the session the check created."""
         try:
             res = await self._http.post(
                 f"{self._base}/auth/v1/token",
@@ -40,11 +41,28 @@ class SupabaseAdmin:
             logger.warning("Auth service unreachable: %s", exc)
             raise _UNAVAILABLE from exc
         if res.status_code == 200:
+            await self.logout(str(res.json().get("access_token", "")), scope="local")
             return True
         if res.status_code in (400, 401):
             return False
         logger.warning("Unexpected auth status %s", res.status_code)
         raise _UNAVAILABLE
+
+    async def logout(self, access_token: str, scope: str) -> None:
+        """scope: "local" (this session) or "others" (every other session of the user)."""
+        if not access_token:
+            return
+        try:
+            await self._http.post(
+                f"{self._base}/auth/v1/logout",
+                params={"scope": scope},
+                headers={
+                    "apikey": self._headers["apikey"],
+                    "Authorization": f"Bearer {access_token}",
+                },
+            )
+        except httpx.HTTPError as exc:  # best effort: the password is already verified/changed
+            logger.warning("Logout (%s) failed: %s", scope, exc)
 
     async def set_password(self, user_id: UUID, password: str) -> None:
         await self._call("PUT", f"/auth/v1/admin/users/{user_id}", {"password": password})

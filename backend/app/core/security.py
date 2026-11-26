@@ -1,12 +1,15 @@
 """Verification of Supabase Auth access tokens (JWT)."""
 
+import threading
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+import httpx
 import jwt
-from jwt import PyJWKClient
+from jwt import PyJWKSet
 
 from app.core.config import Settings
 from app.core.errors import AuthError
@@ -77,6 +80,52 @@ class JwtVerifier:
         )
 
 
+class ThrottledJwks:
+    """Signing keys by `kid`. An unknown kid triggers at most one refetch per interval, so
+    forged tokens with random kids cannot hammer Supabase or stall the server."""
+
+    def __init__(
+        self,
+        fetch: Callable[[], dict[str, Any]],
+        *,
+        min_refresh_seconds: float = 60,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._fetch = fetch
+        self._min_refresh = min_refresh_seconds
+        self._clock = clock
+        self._keys: dict[str, Any] = {}
+        self._last_fetch: float | None = None
+        self._lock = threading.Lock()
+
+    def resolve(self, token: str) -> Any:
+        try:
+            kid = jwt.get_unverified_header(token).get("kid")
+        except jwt.PyJWTError as exc:
+            raise AuthError() from exc
+        if not kid:
+            raise AuthError()
+        key = self._keys.get(kid)
+        if key is not None:
+            return key
+        with self._lock:
+            now = self._clock()
+            if self._last_fetch is None or now - self._last_fetch >= self._min_refresh:
+                self._last_fetch = now
+                self._keys = self._fetch()
+        key = self._keys.get(kid)
+        if key is None:
+            raise AuthError()
+        return key
+
+
+def fetch_jwks(url: str) -> dict[str, Any]:
+    res = httpx.get(url, timeout=5)
+    res.raise_for_status()
+    jwk_set = PyJWKSet.from_dict(res.json())
+    return {k.key_id: k.key for k in jwk_set.keys if k.key_id}
+
+
 def build_verifier(settings: Settings) -> JwtVerifier:
     """JWKS (asymmetric keys) in production; the legacy HS256 secret only if configured."""
     if settings.supabase_jwt_secret is not None:
@@ -88,10 +137,11 @@ def build_verifier(settings: Settings) -> JwtVerifier:
             algorithms=["HS256"],
         )
 
-    jwks = PyJWKClient(settings.jwks_url, cache_keys=True, lifespan=600, timeout=5)
+    url = settings.jwks_url
+    jwks = ThrottledJwks(lambda: fetch_jwks(url))
     return JwtVerifier(
         issuer=settings.jwt_issuer,
         audience=settings.supabase_jwt_audience,
-        resolve_key=lambda token: jwks.get_signing_key_from_jwt(token).key,
+        resolve_key=jwks.resolve,
         algorithms=ASYMMETRIC_ALGORITHMS,
     )

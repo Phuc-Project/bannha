@@ -5,6 +5,7 @@ from typing import Annotated
 
 import httpx
 from fastapi import Depends, Header, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
@@ -43,7 +44,16 @@ async def get_claims(
 ) -> TokenClaims:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise AuthError("UNAUTHENTICATED", "Bạn cần đăng nhập để dùng chức năng này.")
-    return verifier.verify(credentials.credentials)
+    # Verification may fetch signing keys over the network: keep it off the event loop.
+    return await run_in_threadpool(verifier.verify, credentials.credentials)
+
+
+async def get_bearer_token(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> str:
+    if credentials is None:
+        raise AuthError("UNAUTHENTICATED", "Bạn cần đăng nhập để dùng chức năng này.")
+    return credentials.credentials
 
 
 async def get_user_conn(
@@ -85,6 +95,7 @@ def require_roles(*roles: str):  # type: ignore[no-untyped-def]  # returns a Fas
 
 
 Claims = Annotated[TokenClaims, Depends(get_claims)]
+BearerToken = Annotated[str, Depends(get_bearer_token)]
 UserConn = Annotated[AsyncConnection, Depends(get_user_conn)]
 User = Annotated[CurrentUser, Depends(get_current_user)]
 UserAnyState = Annotated[CurrentUser, Depends(get_user_any_state)]

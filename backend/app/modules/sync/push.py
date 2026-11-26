@@ -34,17 +34,20 @@ def _rejected(op_id: UUID, code: str, message: str) -> OpResult:
     return OpResult(op_id=op_id, status="rejected", error={"code": code, "message": message})
 
 
-async def _previous(conn: AsyncConnection, op_id: UUID) -> OpResult | None:
+async def _previous(conn: AsyncConnection, op_id: UUID, name: str) -> OpResult | None:
     row = (
         await conn.execute(
             text(
-                "select status, result from app.sync_ops where op_id = :id and user_id = auth.uid()"
+                "select command, status, result from app.sync_ops"
+                " where op_id = :id and user_id = auth.uid()"
             ),
             {"id": op_id},
         )
     ).one_or_none()
     if row is None:
         return None
+    if row.command != name:
+        return _rejected(op_id, "OP_ID_REUSED", "Mã thao tác bị trùng. Ứng dụng cần đồng bộ lại.")
     stored: dict[str, Any] = row.result
     if row.status == "applied":
         return OpResult(op_id=op_id, status="applied", result=stored)
@@ -73,7 +76,7 @@ async def _record(
 async def apply_op(
     conn: AsyncConnection, user: CurrentUser, op_id: UUID, name: str, payload: dict[str, Any]
 ) -> OpResult:
-    earlier = await _previous(conn, op_id)
+    earlier = await _previous(conn, op_id, name)
     if earlier is not None:
         return earlier
 
@@ -81,9 +84,8 @@ async def apply_op(
     if cmd is None:
         return _rejected(op_id, "UNKNOWN_COMMAND", "Ứng dụng cần cập nhật để gửi thao tác này.")
     if cmd.roles and user.active_role not in cmd.roles:
-        res = _rejected(op_id, "FORBIDDEN", "Tài khoản của bạn không có quyền làm việc này.")
-        await _record(conn, user, op_id, name, res)
-        return res
+        # Not recorded: the same op may succeed after the user switches to the right role.
+        return _rejected(op_id, "WRONG_ROLE", "Hãy chuyển sang đúng vai trò rồi gửi lại.")
     try:
         data = cmd.payload.model_validate(payload)
     except ValidationError:

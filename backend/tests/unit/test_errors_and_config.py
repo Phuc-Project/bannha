@@ -88,4 +88,4 @@ def test_cors_origins_accept_comma_separated_env(monkeypatch: object) -> None:
     assert cfg.cors_origins == ["https://bannha.vercel.app", "http://localhost:5173"]
     assert cfg.jwt_issuer == "https://abc.supabase.co/auth/v1"
     assert cfg.jwks_url == "https://abc.supabase.co/auth/v1/.well-known/jwks.json"
-    assert cfg.is_production is False
+    assert cfg.is_production is True  # APP_ENV unset → production (safe default)

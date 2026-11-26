@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/v1/sync", tags=["sync"])
 
 MAX_TABLES = 40
 MAX_OPS = 100
+ROW_BUDGET = 3000  # rows per pull request, across all tables
 
 
 class TablePage(BaseModel):
@@ -50,9 +51,10 @@ async def pull(body: PullIn, user: User, conn: UserConn) -> ApiResponse[PullOut]
             {"tables": unknown},
         )
     pages: dict[str, TablePage] = {}
+    per_table = max(1, min(body.limit, ROW_BUDGET // max(1, len(body.cursors))))
     for table, cursor in sorted(body.cursors.items()):
         try:
-            page = await pull_table(conn, user, table, cursor, body.limit)
+            page = await pull_table(conn, user, table, cursor, per_table)
         except CursorError as exc:
             raise AppError(
                 "BAD_CURSOR", "Dữ liệu đồng bộ trên máy bị lỗi, cần tải lại.", 400, {"table": table}

@@ -25,6 +25,8 @@ def create_engine(settings: Settings) -> AsyncEngine:
         max_overflow=settings.db_pool_size,
         pool_pre_ping=True,
         pool_recycle=300,
+        # Error messages/logs must not carry bound values (health notes, JWT claims…).
+        hide_parameters=True,
         # Safe behind Supabase's pooler: no cached statements, unique prepared-statement names.
         connect_args={
             "statement_cache_size": 0,
@@ -43,6 +45,7 @@ async def user_transaction(
             text("select set_config('request.jwt.claims', :claims, true)"),
             {"claims": json.dumps(claims.raw)},
         )
+        await conn.exec_driver_sql("set local statement_timeout = '5s'")
         await conn.exec_driver_sql("set local role authenticated")
         yield conn
 
