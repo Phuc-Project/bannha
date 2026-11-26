@@ -39,7 +39,12 @@
      *   và kéo dữ liệu mới từ `/api/v1/sync/pull`.
      */
     api: {
-      baseUrl: env.API_BASE_URL || 'http://127.0.0.1:8010', // VD: 'http://127.0.0.1:8000' hoặc Render URL
+      // Chạy trên máy (Live Server) -> backend local; trên Vercel -> backend Render
+      baseUrl:
+        env.API_BASE_URL ||
+        (['localhost', '127.0.0.1'].includes(global.location.hostname)
+          ? 'http://127.0.0.1:8010'
+          : 'https://bannha-api.onrender.com'),
       timeoutMs: 10000,
     },
 
