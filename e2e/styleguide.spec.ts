@@ -6,24 +6,31 @@ import { expect, test } from '@playwright/test';
 const e2eDir = path.dirname(fileURLToPath(import.meta.url));
 const screenshotDir = path.resolve(e2eDir, '..', 'docs', 'screenshots', 'gd0');
 
-test.describe('Giai đoạn 0 — Giao diện Desktop 1280px & Di động 360px', () => {
+test.describe('Giai đoạn 0 — Giao diện Desktop 1280px & F12 Mobile 360px', () => {
   test.beforeAll(() => {
     mkdirSync(screenshotDir, { recursive: true });
   });
 
-  test('trang chủ / hiển thị rõ bố cục Desktop có Sidebar và không tràn ngang', async ({
+  test('trang chủ / tách bạch Desktop (có Sidebar, ẩn BottomNav) và F12 Mobile (ẩn Sidebar, hiện BottomNav)', async ({
     page,
   }, testInfo) => {
     await page.goto('/');
-    await expect(page.getByText('Ca trực Ký túc xá').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ca trực Ký túc xá' })).toBeVisible();
 
     const hasOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );
     expect(hasOverflow).toBe(false);
 
+    const desktopSidebar = page.getByLabel('Điều hướng chính trên máy tính');
+    const mobileBottomNav = page.getByLabel('Điều hướng di động');
+
     if (testInfo.project.name === 'desktop-1280') {
-      await expect(page.getByLabel('Điều hướng nhân viên')).toBeVisible();
+      await expect(desktopSidebar).toBeVisible();
+      await expect(mobileBottomNav).toBeHidden();
+    } else {
+      await expect(desktopSidebar).toBeHidden();
+      await expect(mobileBottomNav).toBeVisible();
     }
 
     await page.screenshot({
@@ -37,9 +44,7 @@ test.describe('Giai đoạn 0 — Giao diện Desktop 1280px & Di động 360px'
   }, testInfo) => {
     await page.goto('/dev/ui');
 
-    await expect(
-      page.getByRole('heading', { name: 'Hệ thống giao diện BẢN NHÀ' }).first(),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Hệ thống giao diện BẢN NHÀ' })).toBeVisible();
 
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -48,6 +53,8 @@ test.describe('Giai đoạn 0 — Giao diện Desktop 1280px & Di động 360px'
 
     if (testInfo.project.name === 'desktop-1280') {
       await expect(page.getByLabel('Mục lục Styleguide')).toBeVisible();
+    } else {
+      await expect(page.getByLabel('Mục lục Styleguide')).toBeHidden();
     }
 
     await expect(page.getByText('★ Sổ liên lạc Bản – Trường').first()).toBeVisible();

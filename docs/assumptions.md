@@ -34,6 +34,10 @@ Tài liệu này ghi nhận các quyết định làm rõ chi tiết kỹ thuậ
 7. **Tổ chức kho mã nguồn 5 thư mục cấp cao (`web/`, `supabase/`, `e2e/`, `scripts/`, `docs/`):**
    - Theo chỉ định kiến trúc của người dùng, dự án dùng npm workspaces với `web/` chứa toàn bộ mã nguồn Vite + React PWA, `supabase/` chứa migrations/RLS/Edge Functions/tests, `e2e/` chứa cấu hình và kịch bản Playwright, `scripts/` chứa các công cụ dòng lệnh dùng chung (`gen-icons.mjs`, `check-budget.mjs`, và ở GĐ 1 thêm `seed.mjs`, `gen-types.mjs`), và `docs/` lưu kế hoạch, quyết định kỹ thuật cùng ảnh chụp kiểm chứng. File `.env` đặt tại thư mục gốc dự án được Vite đọc qua `envDir: '..'` để dùng chung nhất quán giữa `web/` và `scripts/`.
 
+8. **Chỉnh hướng Desktop-first thực thụ & thẩm mỹ Sổ công tác (theo phản hồi duyệt GĐ 0 của người dùng):**
+   - Tách rạch ròi ngưỡng Desktop (`≥ 768px`) và Mobile (`< 768px`, kích hoạt trên điện thoại thật hoặc khi bấm F12 DevTools): trên Desktop (`≥ 768px`) **ẩn tuyệt đối `BottomNav`** cho mọi vai trò và dùng thanh điều hướng Sidebar xanh rừng cố định bên trái; chỉ khi `< 768px` mới hiển thị giao diện Mobile + thanh tab dưới đáy.
+   - Bỏ phong cách "SaaS card kit / pill chấm tròn" rập khuôn: giảm bo góc (`8px` cho khung, `6px` cho nút/input), dùng mật độ hàng bảng thực dụng trên Desktop (`36px–40px` cho nút/dòng trên máy tính, giữ `≥ 44px` trên di động `< 768px`), thay các cụm 3 ô KPI rời rạc bằng thanh số liệu kẻ vạch dọc `1px`, và đặt bộ chuyển vai trò thử nghiệm gọn ở chân Sidebar thay vì hiển thị card hướng dẫn giữa trang.
+
 ## Quyết định backend (2026-11-26)
 
 - **Backend riêng bằng FastAPI** trong `backend/`, ngang hàng `frontend/`; thay Supabase Edge Functions trong PROMPT.md. Supabase giữ Auth, Postgres (RLS), Storage, Realtime. Mọi đọc/ghi nghiệp vụ đi qua FastAPI.

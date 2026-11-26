@@ -5,32 +5,33 @@ export interface BottomNavProps {
   items: ReadonlyArray<NavItem>;
   activePath: string;
   onNavigate?: (path: string) => void;
-  hideOnDesktop?: boolean;
+  forceShow?: boolean;
   embedded?: boolean;
 }
 
+/**
+ * Mobile-only bottom tab bar (< 768px / F12 mobile viewport).
+ * Strictly hidden on Desktop (>= 768px) unless forceShow is passed for mobile preview.
+ */
 export function BottomNav({
   items,
   activePath,
   onNavigate,
-  hideOnDesktop = false,
+  forceShow = false,
   embedded = false,
 }: BottomNavProps) {
   const cappedItems = items.slice(0, 5);
 
   return (
     <nav
-      aria-label="Điều hướng chính"
+      aria-label="Điều hướng di động"
       className={cx(
         'w-full border-t border-line bg-surface',
         !embedded && 'fixed inset-x-0 bottom-0 z-30',
-        !embedded &&
-          !hideOnDesktop &&
-          'lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-xl lg:-translate-x-1/2 lg:rounded-t-card lg:border-x',
-        hideOnDesktop && 'lg:hidden',
+        !forceShow && 'md:hidden',
       )}
     >
-      <ul className="mx-auto grid max-w-xl grid-flow-col auto-cols-fr">
+      <ul className="grid grid-flow-col auto-cols-fr">
         {cappedItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.path === activePath;
@@ -41,17 +42,17 @@ export function BottomNav({
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => onNavigate?.(item.path)}
                 className={cx(
-                  'relative flex min-h-[56px] w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[12px] font-semibold transition-colors duration-150',
-                  isActive ? 'text-forest-700' : 'text-muted hover:text-ink',
+                  'relative flex min-h-[56px] w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[12px] font-medium transition-colors duration-150',
+                  isActive ? 'font-semibold text-forest-700' : 'text-muted hover:text-ink',
                 )}
               >
                 {isActive ? (
                   <span
                     aria-hidden="true"
-                    className="absolute inset-x-4 top-0 h-[3px] rounded-b-pill bg-forest-700"
+                    className="absolute inset-x-3 top-0 h-[2px] bg-forest-700"
                   />
                 ) : null}
-                <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+                <Icon size={19} strokeWidth={1.75} aria-hidden="true" />
                 <span className="max-w-full truncate">{item.label}</span>
               </button>
             </li>

@@ -19,8 +19,8 @@ export function AppHeader({
   subtitle,
   syncState,
   action,
-  variant = 'forest',
-  showStripe = true,
+  variant = 'workspace',
+  showStripe = false,
   embedded = false,
   className,
 }: AppHeaderProps) {
@@ -31,24 +31,19 @@ export function AppHeader({
       className={cx(
         'w-full',
         isWorkspace
-          ? 'bg-forest-900 text-surface lg:border-b lg:border-line lg:bg-surface lg:text-ink'
+          ? 'bg-forest-900 text-surface md:border-b md:border-line md:bg-surface md:text-ink'
           : 'bg-forest-900 text-surface',
         !embedded && (isWorkspace ? 'sticky top-[6px] z-30' : 'sticky top-0 z-30'),
         className,
       )}
     >
       {!isWorkspace && showStripe ? <TribalStripe /> : null}
-      <div
-        className={cx(
-          'mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-6',
-          isWorkspace ? 'max-w-7xl' : 'max-w-5xl',
-        )}
-      >
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 md:min-h-[58px] md:px-6">
         <div className="min-w-0">
           <h1
             className={cx(
-              'truncate text-[length:var(--font-size-section)] font-bold tracking-[-0.01em]',
-              isWorkspace ? 'text-surface lg:text-ink' : 'text-surface',
+              'truncate text-[18px] font-bold tracking-[-0.01em] md:text-[19px]',
+              isWorkspace ? 'text-surface md:text-ink' : 'text-surface',
             )}
           >
             {title}
@@ -56,15 +51,15 @@ export function AppHeader({
           {subtitle ? (
             <p
               className={cx(
-                'truncate text-[length:var(--font-size-sub)]',
-                isWorkspace ? 'text-cream/85 lg:text-muted' : 'text-cream/85',
+                'truncate text-[13px]',
+                isWorkspace ? 'text-cream/80 md:text-muted' : 'text-cream/80',
               )}
             >
               {subtitle}
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <SyncBadge {...syncState} inverted={!isWorkspace} responsiveWorkspace={isWorkspace} />
           {action}
         </div>

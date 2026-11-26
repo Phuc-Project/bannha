@@ -52,9 +52,9 @@ export function SyncBadge({
         ? 'bg-turmeric'
         : status === 'offline'
           ? responsiveWorkspace
-            ? 'bg-cream lg:bg-muted'
+            ? 'bg-cream/80 md:bg-muted'
             : inverted
-              ? 'bg-cream'
+              ? 'bg-cream/80'
               : 'bg-muted'
           : 'bg-danger';
 
@@ -63,19 +63,19 @@ export function SyncBadge({
       role="status"
       aria-live="polite"
       className={cx(
-        'inline-flex items-center gap-2 rounded-pill border px-3 py-1 text-[length:var(--font-size-sub)] font-medium',
+        'inline-flex items-center gap-2 text-[13px] font-medium whitespace-nowrap',
         responsiveWorkspace
-          ? 'border-cream/30 bg-forest-900 text-cream lg:border-line lg:bg-surface lg:text-ink'
+          ? 'text-cream/90 md:text-muted'
           : inverted
-            ? 'border-cream/30 bg-forest-900 text-cream'
-            : 'border-line bg-surface text-ink',
+            ? 'text-cream/90'
+            : 'text-muted',
         className,
       )}
     >
       <span
         aria-hidden="true"
         className={cx(
-          'h-2.5 w-2.5 shrink-0 rounded-pill',
+          'h-2 w-2 shrink-0 rounded-full',
           dotClass,
           status === 'syncing' && 'motion-safe:animate-pulse',
         )}
@@ -86,9 +86,9 @@ export function SyncBadge({
           type="button"
           onClick={onRetry}
           className={cx(
-            'ml-1 rounded-pill px-2 py-0.5 font-semibold underline underline-offset-2',
+            'ml-1 font-semibold underline underline-offset-2',
             responsiveWorkspace
-              ? 'text-turmeric lg:text-danger'
+              ? 'text-turmeric md:text-danger'
               : inverted
                 ? 'text-turmeric'
                 : 'text-danger',

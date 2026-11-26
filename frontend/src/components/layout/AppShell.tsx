@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../../lib/cx';
-import { isStaffRole, type UserRole } from '../../lib/roles';
+import type { UserRole } from '../../lib/roles';
 import type { SyncBadgeProps } from '../ui/SyncBadge';
 import { TribalStripe } from '../ui/TribalStripe';
 import { AppHeader } from './AppHeader';
@@ -16,6 +16,7 @@ export interface AppShellProps {
   subtitle?: string;
   schoolName?: string;
   sidebarFooter?: string;
+  sidebarControl?: ReactNode;
   syncState: Omit<SyncBadgeProps, 'inverted' | 'responsiveWorkspace'>;
   headerAction?: ReactNode;
   navItems: ReadonlyArray<NavItem>;
@@ -32,6 +33,7 @@ export function AppShell({
   subtitle,
   schoolName,
   sidebarFooter,
+  sidebarControl,
   syncState,
   headerAction,
   navItems,
@@ -41,99 +43,60 @@ export function AppShell({
   forceViewport = 'responsive',
   children,
 }: AppShellProps) {
-  const showDesktopSidebar = isStaffRole(role) && forceViewport !== 'mobile';
-
-  if (showDesktopSidebar) {
-    return (
-      <div
-        className={cx(
-          'flex flex-col bg-cream text-ink',
-          embedded
-            ? 'min-h-[600px] overflow-hidden rounded-card border border-line'
-            : 'min-h-screen',
-        )}
-      >
-        <div className={cx(!embedded && 'sticky top-0 z-40')}>
-          <TribalStripe />
-        </div>
-
-        <div className="flex min-w-0 flex-1">
-          <Sidebar
-            role={role}
-            schoolName={schoolName}
-            userLabel={subtitle}
-            footerNote={sidebarFooter}
-            items={navItems}
-            activePath={activePath}
-            onNavigate={onNavigate}
-            embedded={embedded}
-          />
-
-          <div className="flex min-w-0 flex-1 flex-col">
-            <AppHeader
-              title={title}
-              subtitle={subtitle}
-              syncState={syncState}
-              action={headerAction}
-              variant="workspace"
-              showStripe={false}
-              embedded={embedded}
-            />
-
-            <main
-              className={cx(
-                'min-w-0 flex-1 px-4 py-4 lg:px-6 lg:py-6',
-                !embedded && 'pb-20 lg:pb-8',
-              )}
-            >
-              <div className="mx-auto max-w-7xl">{children}</div>
-            </main>
-          </div>
-        </div>
-
-        <BottomNav
-          items={navItems}
-          activePath={activePath}
-          onNavigate={onNavigate}
-          hideOnDesktop
-          embedded={embedded}
-        />
-      </div>
-    );
-  }
+  const isForcedMobile = forceViewport === 'mobile';
 
   return (
     <div
       className={cx(
         'flex flex-col bg-cream text-ink',
-        embedded ? 'min-h-[560px] overflow-hidden rounded-card border border-line' : 'min-h-screen',
+        embedded
+          ? 'min-h-[580px] overflow-hidden rounded-[8px] border border-line'
+          : 'min-h-screen',
       )}
     >
-      <AppHeader
-        title={title}
-        subtitle={subtitle}
-        syncState={syncState}
-        action={headerAction}
-        variant="forest"
-        embedded={embedded}
-      />
+      <div className={cx(!embedded && 'sticky top-0 z-40')}>
+        <TribalStripe />
+      </div>
 
-      <main
-        className={cx(
-          'min-w-0 flex-1 px-4 py-4',
-          forceViewport === 'responsive' && 'lg:px-6 lg:py-6',
-          !embedded && 'pb-24',
-        )}
-      >
-        <div className={cx('mx-auto', forceViewport === 'mobile' ? 'max-w-full' : 'max-w-5xl')}>
-          {children}
+      <div className="flex min-w-0 flex-1">
+        {!isForcedMobile ? (
+          <Sidebar
+            role={role}
+            schoolName={schoolName}
+            userLabel={subtitle}
+            footerNote={sidebarFooter}
+            footerControl={sidebarControl}
+            items={navItems}
+            activePath={activePath}
+            onNavigate={onNavigate}
+            embedded={embedded}
+          />
+        ) : null}
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <AppHeader
+            title={title}
+            subtitle={subtitle}
+            syncState={syncState}
+            action={headerAction}
+            variant={isForcedMobile ? 'forest' : 'workspace'}
+            showStripe={false}
+            embedded={embedded}
+          />
+
+          <main
+            className={cx('min-w-0 flex-1 px-4 py-4 md:px-6 md:py-5', !embedded && 'pb-20 md:pb-8')}
+          >
+            <div className={cx('mx-auto', !isForcedMobile && 'max-w-[1280px]')}>{children}</div>
+          </main>
         </div>
-      </main>
+      </div>
 
       <BottomNav
         items={navItems}
         activePath={activePath}
         onNavigate={onNavigate}
+        forceShow={isForcedMobile}
         embedded={embedded}
       />
     </div>
