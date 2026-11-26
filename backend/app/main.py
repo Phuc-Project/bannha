@@ -4,6 +4,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,7 +12,11 @@ from app.core.config import Settings, get_settings
 from app.core.db import create_engine
 from app.core.errors import register_error_handlers
 from app.core.security import JwtVerifier, build_verifier
+from app.modules.auth.router import router as auth_router
+from app.modules.me.router import router as me_router
+from app.modules.sync.router import router as sync_router
 from app.modules.system.router import router as system_router
+from app.modules.uploads.router import router as uploads_router
 
 
 def create_app(settings: Settings | None = None, verifier: JwtVerifier | None = None) -> FastAPI:
@@ -21,6 +26,7 @@ def create_app(settings: Settings | None = None, verifier: JwtVerifier | None = 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
+        await app.state.http.aclose()
         await app.state.engine.dispose()
 
     app = FastAPI(
@@ -35,6 +41,7 @@ def create_app(settings: Settings | None = None, verifier: JwtVerifier | None = 
     app.state.settings = cfg
     app.state.verifier = verifier or build_verifier(cfg)
     app.state.engine = create_engine(cfg)
+    app.state.http = httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0))
 
     app.add_middleware(
         CORSMiddleware,
@@ -45,7 +52,8 @@ def create_app(settings: Settings | None = None, verifier: JwtVerifier | None = 
         max_age=600,
     )
     register_error_handlers(app)
-    app.include_router(system_router)
+    for router in (system_router, me_router, auth_router, sync_router, uploads_router):
+        app.include_router(router)
     return app
 
 

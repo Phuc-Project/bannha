@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(default=5, ge=1, le=50)
 
     account_email_domain: str = "bannha.internal"
+    max_upload_mb: int = Field(default=5, ge=1, le=20)
     timezone: str = "Asia/Ho_Chi_Minh"
 
     @field_validator("cors_origins", mode="before")

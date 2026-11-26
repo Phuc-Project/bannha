@@ -91,3 +91,7 @@ async def blocked(conn: AsyncConnection, sql: str, **params: Any) -> bool:
     await savepoint.rollback()
     # UPDATEs hidden by RLS do not raise; they simply touch zero rows.
     return affected == 0
+
+
+# API fixtures (api, login, ready) shared by the HTTP tests in this folder.
+from tests.db.api_fixtures import api, login, ready  # noqa: E402, F401
