@@ -8,7 +8,11 @@ export interface SyncLabelInput {
   pendingCount?: number;
 }
 
-export function formatSyncLabel({ status, minutesAgo = 0, pendingCount = 0 }: SyncLabelInput): string {
+export function formatSyncLabel({
+  status,
+  minutesAgo = 0,
+  pendingCount = 0,
+}: SyncLabelInput): string {
   switch (status) {
     case 'synced':
       return minutesAgo <= 0 ? 'Vừa đồng bộ xong' : `Đã đồng bộ ${minutesAgo} phút trước`;
@@ -25,6 +29,7 @@ export function formatSyncLabel({ status, minutesAgo = 0, pendingCount = 0 }: Sy
 
 export interface SyncBadgeProps extends SyncLabelInput {
   inverted?: boolean;
+  responsiveWorkspace?: boolean;
   onRetry?: () => void;
   className?: string;
 }
@@ -34,6 +39,7 @@ export function SyncBadge({
   minutesAgo,
   pendingCount,
   inverted = false,
+  responsiveWorkspace = false,
   onRetry,
   className,
 }: SyncBadgeProps) {
@@ -45,9 +51,11 @@ export function SyncBadge({
       : status === 'syncing' || status === 'pending'
         ? 'bg-turmeric'
         : status === 'offline'
-          ? inverted
-            ? 'bg-cream'
-            : 'bg-muted'
+          ? responsiveWorkspace
+            ? 'bg-cream lg:bg-muted'
+            : inverted
+              ? 'bg-cream'
+              : 'bg-muted'
           : 'bg-danger';
 
   return (
@@ -56,9 +64,11 @@ export function SyncBadge({
       aria-live="polite"
       className={cx(
         'inline-flex items-center gap-2 rounded-pill border px-3 py-1 text-[length:var(--font-size-sub)] font-medium',
-        inverted
-          ? 'border-cream/30 bg-forest-900 text-cream'
-          : 'border-line bg-surface text-ink',
+        responsiveWorkspace
+          ? 'border-cream/30 bg-forest-900 text-cream lg:border-line lg:bg-surface lg:text-ink'
+          : inverted
+            ? 'border-cream/30 bg-forest-900 text-cream'
+            : 'border-line bg-surface text-ink',
         className,
       )}
     >
@@ -77,7 +87,11 @@ export function SyncBadge({
           onClick={onRetry}
           className={cx(
             'ml-1 rounded-pill px-2 py-0.5 font-semibold underline underline-offset-2',
-            inverted ? 'text-turmeric' : 'text-danger',
+            responsiveWorkspace
+              ? 'text-turmeric lg:text-danger'
+              : inverted
+                ? 'text-turmeric'
+                : 'text-danger',
           )}
         >
           Thử lại

@@ -5,24 +5,31 @@ import { HomeEntryPage } from './HomeEntryPage';
 
 const StyleguidePage = lazy(() => import('../dev/ui/StyleguidePage'));
 
-export const appRouter = createBrowserRouter([
+export const appRouter = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <HomeEntryPage />,
+    },
+    {
+      path: '/dev/ui',
+      element: (
+        <Suspense
+          fallback={
+            <div className="mx-auto flex max-w-5xl flex-col gap-3 p-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-48 w-full" />
+            </div>
+          }
+        >
+          <StyleguidePage />
+        </Suspense>
+      ),
+    },
+  ],
   {
-    path: '/',
-    element: <HomeEntryPage />,
+    future: {
+      v7_relativeSplatPath: true,
+    },
   },
-  {
-    path: '/dev/ui',
-    element: (
-      <Suspense
-        fallback={
-          <div className="mx-auto flex max-w-5xl flex-col gap-3 p-4">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-48 w-full" />
-          </div>
-        }
-      >
-        <StyleguidePage />
-      </Suspense>
-    ),
-  },
-]);
+);

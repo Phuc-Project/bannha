@@ -39,7 +39,7 @@ export function Button({
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={cx(
-        'inline-flex min-h-[var(--control-height)] min-w-[44px] items-center justify-center gap-2 rounded-control border px-4 py-2 text-[length:var(--font-size-body)] font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex min-h-[var(--control-height)] min-w-[44px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-control border px-4 py-2 text-[length:var(--font-size-body)] font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60',
         VARIANT_CLASSES[variant],
         fullWidth && 'w-full',
         className,

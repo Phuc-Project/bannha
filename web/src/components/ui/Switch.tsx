@@ -8,13 +8,7 @@ export interface SwitchProps {
   className?: string;
 }
 
-export function Switch({
-  label,
-  description,
-  checked,
-  onCheckedChange,
-  className,
-}: SwitchProps) {
+export function Switch({ label, description, checked, onCheckedChange, className }: SwitchProps) {
   return (
     <div className={cx('flex items-center justify-between gap-3 py-1', className)}>
       <div>

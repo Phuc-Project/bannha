@@ -36,7 +36,7 @@ export function StatusBadge({ label, tone = 'neutral', className }: StatusBadgeP
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-1 text-[length:var(--font-size-sub)] font-medium leading-tight',
+        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill border px-2.5 py-1 text-[length:var(--font-size-sub)] font-medium leading-tight',
         styles.wrapper,
         className,
       )}

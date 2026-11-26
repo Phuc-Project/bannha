@@ -10,7 +10,10 @@ describe('analyzeInitialBundleGzip', () => {
     try {
       mkdirSync(path.join(dir, 'assets'));
       writeFileSync(path.join(dir, 'assets', 'index-main.js'), 'const x = 1;\n'.repeat(250));
-      writeFileSync(path.join(dir, 'assets', 'vendor-core.js'), 'export const y = 2;\n'.repeat(250));
+      writeFileSync(
+        path.join(dir, 'assets', 'vendor-core.js'),
+        'export const y = 2;\n'.repeat(250),
+      );
       writeFileSync(
         path.join(dir, 'assets', 'StyleguidePage-lazy.js'),
         'export const z = 3;\n'.repeat(8000),

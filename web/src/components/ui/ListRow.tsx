@@ -11,14 +11,7 @@ export interface ListRowProps {
   className?: string;
 }
 
-export function ListRow({
-  leading,
-  title,
-  subtitle,
-  trailing,
-  onClick,
-  className,
-}: ListRowProps) {
+export function ListRow({ leading, title, subtitle, trailing, onClick, className }: ListRowProps) {
   const content = (
     <>
       {leading ? <div className="shrink-0">{leading}</div> : null}
@@ -54,7 +47,9 @@ export function ListRow({
   }
 
   return (
-    <div className={cx('flex min-h-[var(--control-height)] items-center gap-3 px-4 py-3', className)}>
+    <div
+      className={cx('flex min-h-[var(--control-height)] items-center gap-3 px-4 py-3', className)}
+    >
       {content}
     </div>
   );

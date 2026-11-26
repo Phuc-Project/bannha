@@ -6,9 +6,12 @@ import { TribalStripe } from '../ui/TribalStripe';
 export interface AppHeaderProps {
   title: string;
   subtitle?: string;
-  syncState: Omit<SyncBadgeProps, 'inverted'>;
+  syncState: Omit<SyncBadgeProps, 'inverted' | 'responsiveWorkspace'>;
   action?: ReactNode;
+  variant?: 'forest' | 'workspace';
+  showStripe?: boolean;
   embedded?: boolean;
+  className?: string;
 }
 
 export function AppHeader({
@@ -16,27 +19,53 @@ export function AppHeader({
   subtitle,
   syncState,
   action,
+  variant = 'forest',
+  showStripe = true,
   embedded = false,
+  className,
 }: AppHeaderProps) {
+  const isWorkspace = variant === 'workspace';
+
   return (
     <header
       className={cx(
-        'w-full bg-forest-900 text-surface',
-        !embedded && 'sticky top-0 z-30',
+        'w-full',
+        isWorkspace
+          ? 'bg-forest-900 text-surface lg:border-b lg:border-line lg:bg-surface lg:text-ink'
+          : 'bg-forest-900 text-surface',
+        !embedded && (isWorkspace ? 'sticky top-[6px] z-30' : 'sticky top-0 z-30'),
+        className,
       )}
     >
-      <TribalStripe />
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3">
+      {!isWorkspace && showStripe ? <TribalStripe /> : null}
+      <div
+        className={cx(
+          'mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-6',
+          isWorkspace ? 'max-w-7xl' : 'max-w-5xl',
+        )}
+      >
         <div className="min-w-0">
-          <h1 className="truncate text-[length:var(--font-size-section)] font-bold tracking-[-0.01em] text-surface">
+          <h1
+            className={cx(
+              'truncate text-[length:var(--font-size-section)] font-bold tracking-[-0.01em]',
+              isWorkspace ? 'text-surface lg:text-ink' : 'text-surface',
+            )}
+          >
             {title}
           </h1>
           {subtitle ? (
-            <p className="truncate text-[length:var(--font-size-sub)] text-cream/85">{subtitle}</p>
+            <p
+              className={cx(
+                'truncate text-[length:var(--font-size-sub)]',
+                isWorkspace ? 'text-cream/85 lg:text-muted' : 'text-cream/85',
+              )}
+            >
+              {subtitle}
+            </p>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
-          <SyncBadge {...syncState} inverted />
+        <div className="flex flex-wrap items-center gap-2">
+          <SyncBadge {...syncState} inverted={!isWorkspace} responsiveWorkspace={isWorkspace} />
           {action}
         </div>
       </div>

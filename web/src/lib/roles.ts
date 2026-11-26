@@ -1,11 +1,5 @@
 export type UserRole =
-  | 'student'
-  | 'teacher'
-  | 'dorm_staff'
-  | 'medical_staff'
-  | 'kitchen_staff'
-  | 'parent'
-  | 'admin';
+  'student' | 'teacher' | 'dorm_staff' | 'medical_staff' | 'kitchen_staff' | 'parent' | 'admin';
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   student: 'Học sinh',

@@ -11,9 +11,9 @@ describe('Design tokens & WCAG AA contrast (>= 4.5:1)', () => {
       path.dirname(fileURLToPath(import.meta.url)),
       '../styles/tokens.css',
     );
-    const css = readFileSync(cssPath, 'utf8');
+    const css = readFileSync(cssPath, 'utf8').toLowerCase();
     for (const [cssVar, hex] of Object.entries(TOKENS)) {
-      expect(css).toContain(`${cssVar}: ${hex};`);
+      expect(css).toContain(`${cssVar}: ${hex.toLowerCase()};`);
     }
   });
 

@@ -32,9 +32,7 @@ export function Timeline({ items, className }: TimelineProps) {
                   tone === 'danger' && 'border-danger bg-danger',
                 )}
               />
-              {!isLast ? (
-                <span aria-hidden="true" className="mt-1 w-px flex-1 bg-line" />
-              ) : null}
+              {!isLast ? <span aria-hidden="true" className="mt-1 w-px flex-1 bg-line" /> : null}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-2">

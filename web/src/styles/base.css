@@ -8,7 +8,11 @@
   html {
     background-color: var(--color-cream);
     color: var(--color-ink);
-    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    font-family:
+      'Be Vietnam Pro',
+      system-ui,
+      -apple-system,
+      sans-serif;
     font-size: 16px;
     line-height: 1.5;
     -webkit-tap-highlight-color: transparent;

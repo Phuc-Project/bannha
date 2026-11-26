@@ -8,13 +8,7 @@ export interface ProgressBarProps {
   className?: string;
 }
 
-export function ProgressBar({
-  label,
-  value,
-  max = 10,
-  valueText,
-  className,
-}: ProgressBarProps) {
+export function ProgressBar({ label, value, max = 10, valueText, className }: ProgressBarProps) {
   const clamped = Math.max(0, Math.min(max, value));
   const pct = max > 0 ? Math.round((clamped / max) * 100) : 0;
 

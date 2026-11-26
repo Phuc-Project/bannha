@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Bell, BookOpen, CalendarCheck, Home, ShieldAlert, Utensils, Users } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
-import { AppShell } from './AppShell';
-import type { NavItem } from './nav-types';
+import { AppShell, type NavItem } from './AppShell';
 
 const SIX_NAV_ITEMS: NavItem[] = [
   { id: 'home', label: 'Hôm nay', icon: Home, path: '/' },
@@ -13,8 +12,8 @@ const SIX_NAV_ITEMS: NavItem[] = [
   { id: 'extra', label: 'Mục thứ 6', icon: Bell, path: '/extra' },
 ];
 
-describe('AppShell role-adaptive layout', () => {
-  it('renders TribalStripe, SyncBadge, max 5 BottomNav items, and NO Sidebar for student/parent', () => {
+describe('AppShell role-adaptive desktop & mobile layout (§3.6)', () => {
+  it('renders SyncBadge, max 5 BottomNav items, and NO Sidebar for student/parent', () => {
     const { container } = render(
       <AppShell
         role="student"
@@ -36,10 +35,10 @@ describe('AppShell role-adaptive layout', () => {
     expect(screen.queryByText('Mục thứ 6')).not.toBeInTheDocument();
   });
 
-  it('renders desktop Sidebar (>= 1024px) alongside mobile BottomNav for staff roles', () => {
+  it('renders full-height left Sidebar with badge & footer for staff roles on desktop', () => {
     const staffNav: NavItem[] = [
-      { id: 'desk', label: 'Ca trực', icon: CalendarCheck, path: '/truc' },
-      { id: 'students', label: 'Học sinh', icon: Users, path: '/hoc-sinh' },
+      { id: 'desk', label: 'Điểm danh QR', icon: CalendarCheck, path: '/ca-truc' },
+      { id: 'leaves', label: 'Duyệt đơn phép', icon: Users, path: '/duyet-don', badgeCount: 2 },
     ];
 
     const { container } = render(
@@ -47,17 +46,44 @@ describe('AppShell role-adaptive layout', () => {
         role="dorm_staff"
         title="Ca trực Ký túc xá"
         subtitle="Quản sinh Nông Văn Toàn"
+        schoolName="Trường PTDTNT [TÊN TRƯỜNG]"
+        sidebarFooter="Trực KTX: 0218 3851 102"
         syncState={{ status: 'pending', pendingCount: 3 }}
         navItems={staffNav}
-        activePath="/truc"
+        activePath="/ca-truc"
       >
         <div>Danh sách điểm danh</div>
       </AppShell>,
     );
 
-    expect(screen.getByText('Đang chờ gửi 3 mục')).toBeInTheDocument();
+    expect(screen.getAllByText('Đang chờ gửi 3 mục').length).toBeGreaterThanOrEqual(1);
     const sidebar = container.querySelector('aside');
     expect(sidebar).not.toBeNull();
     expect(sidebar?.className).toContain('lg:flex');
+    expect(sidebar?.textContent).toContain('Trường PTDTNT [TÊN TRƯỜNG]');
+    expect(sidebar?.textContent).toContain('Trực KTX: 0218 3851 102');
+    expect(sidebar?.textContent).toContain('2');
+  });
+
+  it('hides desktop Sidebar when forceViewport="mobile" is used for styleguide preview', () => {
+    const staffNav: NavItem[] = [
+      { id: 'desk', label: 'Điểm danh QR', icon: CalendarCheck, path: '/ca-truc' },
+    ];
+
+    const { container } = render(
+      <AppShell
+        embedded
+        forceViewport="mobile"
+        role="dorm_staff"
+        title="Ca trực Ký túc xá"
+        syncState={{ status: 'synced', minutesAgo: 1 }}
+        navItems={staffNav}
+        activePath="/ca-truc"
+      >
+        <div>Xem khung điện thoại</div>
+      </AppShell>,
+    );
+
+    expect(container.querySelector('aside')).toBeNull();
   });
 });

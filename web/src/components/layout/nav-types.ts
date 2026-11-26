@@ -5,4 +5,5 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   path: string;
+  badgeCount?: number;
 }
